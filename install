@@ -84,7 +84,10 @@ class Command:
             for command in self.pre_install:
                 if type(command) is str:
                     command = shlex.split(command)
-                self.execute(command)
+                if type(command) is System:
+                    command.run()
+                else:
+                    self.execute(command)
 
         self.execute(self.command)
 
@@ -92,7 +95,10 @@ class Command:
             for command in self.post_install:
                 if type(command) is str:
                     command = shlex.split(command)
-                self.execute(command)
+                if type(command) is System:
+                    command.run()
+                else:
+                    self.execute(command)
 
         self.record_status(conn, 'complete')
 
@@ -102,13 +108,23 @@ class Command:
 
         if self.pre_rollback is not None:
             for command in self.pre_rollback:
-                self.execute(command)
+                if type(command) is str:
+                    command = shlex.split(command)
+                if type(command) is System:
+                    command.run()
+                else:
+                    self.execute(command)
 
         self.execute(self.rollback_command)
 
         if self.post_rollback is not None:
             for command in self.post_rollback:
-                self.execute(command)
+                if type(command) is str:
+                    command = shlex.split(command)
+                if type(command) is System:
+                    command.run()
+                else:
+                    self.execute(command)
 
         self.record_status(conn, 'not-started')
 
@@ -277,9 +293,8 @@ def all_tasks():
         apt(
             'wezterm',
             pre_install=[
-                ""
-                "curl -fsSL https://apt.fury.io/wez/gpg.key | sudo gpg --yes --dearmor -o /usr/share/keyrings/wezterm-fury.gpg",
-                "echo 'deb [signed-by=/usr/share/keyrings/wezterm-fury.gpg] https://apt.fury.io/wez/ * *' | sudo tee /etc/apt/sources.list.d/wezterm.list",
+                System("curl -fsSL https://apt.fury.io/wez/gpg.key | sudo gpg --yes --dearmor -o /usr/share/keyrings/wezterm-fury.gpg"),
+                System("echo 'deb [signed-by=/usr/share/keyrings/wezterm-fury.gpg] https://apt.fury.io/wez/ * *' | sudo tee /etc/apt/sources.list.d/wezterm.list"),
                 "sudo chmod 644 /usr/share/keyrings/wezterm-fury.gpg",
                 "sudo apt update",
             ],
@@ -338,6 +353,13 @@ def all_tasks():
     #   - git setup
     # - Pre-commands
     #   - Setup keyrings and apt thingies
+
+class System:
+    def __init__(self, command):
+        self.command = command
+
+    def run(self):
+        subprocess.run(self.command, shell=True).check_returncode()
 
 def ensure_setup(db_path, tasks):
     conn = sqlite3.connect(db_path)
