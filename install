@@ -155,7 +155,7 @@ def set_status(conn, package, status):
         cursor.execute('ROLLBACK')
         raise ex
 
-def execute(cmd, dry_run=True):
+def execute(cmd, dry_run=False):
     print(f'$ {' '.join(cmd)}')
     if dry_run:
         return
