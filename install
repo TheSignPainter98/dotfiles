@@ -131,9 +131,9 @@ class Command:
                 '''
                     UPDATE step
                     SET status = ?
-                    WHERE hash = ?
+                    WHERE name = ?
                 ''',
-                (status, self.hash)
+                (status, self.name)
             )
             cursor.execute('COMMIT')
         except Exception as ex:
@@ -211,29 +211,29 @@ def main():
     conn = ensure_setup('dotfiles.db', tasks)
     cursor = conn.cursor()
 
-    tasks_by_hash = { task.hash: task for task in tasks }
+    tasks_by_name = { task.name: task for task in tasks }
 
     to_rollback_query = cursor.execute('''
-        SELECT hash
+        SELECT name
         FROM step
         WHERE status = 1
         ORDER BY
             priority ASC,
             name ASC
     ''')
-    to_rollback = [ tasks_by_hash[hash] for (hash,) in to_rollback_query ]
+    to_rollback = [ tasks_by_name[name] for (name,) in to_rollback_query ]
     for task in to_rollback:
         task.rollback(conn)
 
     to_enact_query = cursor.execute('''
-        SELECT hash
+        SELECT name
         FROM step
         WHERE status = 0
         ORDER BY
             priority ASC,
             name ASC
     ''')
-    to_enact = [ tasks_by_hash[hash] for (hash,) in to_enact_query ]
+    to_enact = [ tasks_by_name[name] for (name,) in to_enact_query ]
     for task in to_enact:
         task.enact(conn)
 
@@ -260,6 +260,10 @@ def all_tasks():
         apt('luajit'),
         apt('luarocks'),
         apt('make'),
+        apt(
+            'plocate',
+            post_install='sudo updatedb',
+        ),
         apt('ripgrep'),
         apt('sqlite3'),
         apt(
@@ -295,9 +299,8 @@ def all_tasks():
         cargo('starship'),
         cargo('cargo-nextest'),
         cargo('btm'),
-        dotdir('.config/fish/'),
-        dotfile('.config/starship.toml'),
         dotdir('.config/starship/'),
+        dotfile('.config/starship.toml'),
         dotfile('.config/jj/config.toml'),
         dotdir(
             '.config/nvim/',
@@ -307,6 +310,7 @@ def all_tasks():
             '.config/wezterm/',
             pre_install='yue home/.config/wezterm/',
         ),
+        dotfile('.config/fish/config.toml'),
         dotfile(
             '.wezterm.lua',
             source_file='home/.config/wezterm/.wezterm.lua',
