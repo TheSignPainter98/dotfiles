@@ -1,24 +1,23 @@
 #!/usr/bin/python3
 
+import hashlib
 import os
+import shlex
 import sqlite3
 
-VERSION = 2
+DRY_RUN = True
+
+VERSION = 3
 SCHEMA = f'''
     PRAGMA user_version = {VERSION};
     PRAGMA writable_schema = 0;
 
-    CREATE TABLE package (
+    CREATE TABLE step (
         id INTEGER PRIMARY KEY,
-        name TEXT NOT NULL UNIQUE,
-        kind INTEGER NOT NULL CHECK (0 <= kind AND kind <= 3),
-        pretty_kind TEXT AS (CASE
-            WHEN kind = 0 THEN 'apt'
-            WHEN kind = 1 THEN 'snap'
-            WHEN kind = 2 THEN 'classic-snap'
-            WHEN kind = 3 THEN 'crate'
-            ELSE 'unknown'
-        END),
+        name TEXT NOT NULL,
+        priority INTEGER NOT NULL,
+        hash TEXT NOT NULL,
+
         status INTEGER NOT NULL
             DEFAULT 0
             CHECK (0 <= status AND status <= 2),
@@ -29,139 +28,237 @@ SCHEMA = f'''
             ELSE 'unknown'
         END)
     ) STRICT;
-
-    CREATE TABLE extra_commands (
-        command TEXT NOT NULL,
-        kind INTEGER NOT NULL CHECK (0 <= kind AND kind <= 1),
-        pretty_kind TEXT AS (CASE 
-            WHEN kind = 0 THEN 'pre-install'
-            WHEN kind = 1 THEN 'post-install'
-            ELSE 'unknown'
-        END),
-        package_id INTEGER NOT NULL,
-        sequence_number INTEGER NOT NULL,
-        FOREIGN KEY (package_id) REFERENCES package(id)
-    ) STRICT;
 '''
 
-def main():
-    conn = ensure_setup('dotfiles.db')
-    cursor = conn.cursor()
+class Command:
+    def __init__(self, name, command, priority, pre_install=None, post_install=None, rollback_command=None, pre_rollback=None, post_rollback=None):
+        if pre_install is not None and type(pre_install) is not list:
+            pre_install = [pre_install]
+        if post_install is not None and type(post_install) is not list:
+            post_install = [post_install]
+        if pre_rollback is not None and type(pre_rollback) is not list:
+            pre_rollback = [pre_rollback]
+        if post_rollback is not None and type(post_rollback) is not list:
+            post_rollback = [post_rollback]
 
-    to_rollback_query = cursor.execute('''
-        SELECT name, pretty_kind, pretty_status
-        FROM package
-        WHERE status = 1
-        ORDER BY
-            kind ASC,
-            name ASC
-    ''')
-    to_rollback = list(to_rollback_query)
-    for package in to_rollback:
-        rollback(conn, Package(package))
-
-    to_install_query = cursor.execute('''
-        SELECT name, pretty_kind, pretty_status
-        FROM package
-        WHERE status <= 1
-        ORDER BY
-            kind ASC,
-            name ASC
-    ''')
-    to_install = list(to_install_query)
-    for package in to_install:
-        install(conn, Package(package))
-    print('All packages installed :D')
-
-class Package:
-    def __init__(self, raw):
-        (name, kind, status) = raw
         self.name = name
-        self.kind = kind
-        self.status = status
+        self.command = command
+        self.priority = priority
+        self.rollback_command = rollback_command
+        self.pre_install = pre_install
+        self.post_install = post_install
+        self.pre_rollback = pre_rollback
+        self.post_rollback = post_rollback
 
-    def __str__(self):
-        return self.name
+        hasher = hashlib.sha256()
+        def hash(command):
+            if command is None:
+                hasher.update(b'')
+            else:
+                hasher.update(bytes(len(command)))
+                for part in command:
+                    hasher.update(bytes(part, 'utf-8'))
+        hash(command)
+        hash(rollback_command)
+        hash(pre_install)
+        hash(post_install)
+        hash(pre_rollback)
+        hash(post_rollback)
+        self.hash = hasher.hexdigest()
 
-def rollback(conn, package):
-    if package.kind == 'apt':
-        execute(['sudo', 'apt', 'remove', package.name])
-    elif package.kind == 'snap' or package.kind == 'classic-snap':
-        execute(['sudo', 'snap', 'remove', '--purge', package.name])
-    elif package.kind == 'crate':
-        execute(['cargo', 'uninstall', package.name])
-    else:
-        raise Exception(f'unknown package kind {package.kind}')
-
-    set_status(conn, package, 'not-started')
-
-def install(conn, package):
-    set_status(conn, package, 'in-progress')
-
-    cursor = conn.cursor()
-    preinstall_commands = cursor.execute('''
-        SELECT extra_commands.command, package.name
-        FROM extra_commands
-        INNER JOIN package ON extra_commands.package_id = package.id
-        WHERE extra_commands.kind = 0 AND package.name = ?
-        ORDER BY sequence_number
-    ''', [package.name])
-    for (command, name) in preinstall_commands:
-        execute([command])
-
-    if package.kind == 'apt':
-        execute(['sudo', 'apt', 'install', package.name])
-    elif package.kind == 'snap':
-        execute(['sudo', 'snap', 'install', package.name])
-    elif package.kind == 'classic-snap':
-        execute(['sudo', 'snap', 'install', package.name, '--classic'])
-    elif package.kind == 'crate':
-        execute(['cargo', 'install', package.name, '--locked'])
-    else:
-        raise Exception(f'unknown package kind {package.kind}')
-
-    preinstall_commands = cursor.execute('''
-        SELECT extra_commands.command, package.name
-        FROM extra_commands
-        INNER JOIN package ON extra_commands.package_id = package.id
-        WHERE extra_commands.kind = 1 AND package.name = ?
-        ORDER BY sequence_number
-    ''', [package.name])
-    for (command, name) in preinstall_commands:
-        execute([command])
-
-    set_status(conn, package, 'complete')
-
-statuses = {
-    'not-started': 0,
-    'in-progress': 1,
-    'complete': 2,
-}
-def set_status(conn, package, status):
-    status = statuses[status]
-    try:
-        cursor = conn.cursor()
-        cursor.execute('BEGIN IMMEDIATE')
+    def declare(self, cursor):
         cursor.execute(
             '''
-                UPDATE package
-                SET status = ?
-                WHERE name = ?
+                INSERT INTO step (name, priority, hash)
+                VALUES (?, ?, ?)
             ''',
-            (status, package.name)
+            (self.name, self.priority, self.hash),
         )
-        cursor.execute('COMMIT')
-    except Exception as ex:
-        cursor.execute('ROLLBACK')
-        raise ex
 
-def execute(cmd, dry_run=False):
-    print(f'$ {' '.join(cmd)}')
-    if dry_run:
-        return
-    subprocess.run(cmd)
+    def enact(self, conn):
+        self.record_status(conn, 'in-progress')
 
-def ensure_setup(db_path):
+        if self.pre_install is not None:
+            for command in self.pre_install:
+                if type(command) is str:
+                    command = shlex.split(command)
+                self.execute(command)
+
+        self.execute(self.command)
+
+        if self.post_install is not None:
+            for command in self.post_install:
+                if type(command) is str:
+                    command = shlex.split(command)
+                self.execute(command)
+
+        self.record_status(conn, 'complete')
+
+    def rollback(self, conn):
+        if self.rollback_command is None:
+            raise Exception(f'cannot rollback {self.command}')
+
+        if self.pre_rollback is not None:
+            for command in self.pre_rollback:
+                self.execute(command)
+
+        self.execute(self.rollback_command)
+
+        if self.post_rollback is not None:
+            for command in self.post_rollback:
+                self.execute(command)
+
+        self.record_status(conn, 'not-started')
+
+    def execute(self, command):
+        print(f'$ {' '.join(command)}')
+        if DRY_RUN:
+            return
+        subprocess.run(command)
+
+    def record_status(self, conn, status):
+        statuses = {
+            'not-started': 0,
+            'in-progress': 1,
+            'complete': 2,
+        }
+        status = statuses[status]
+        try:
+            cursor = conn.cursor()
+            cursor.execute('BEGIN IMMEDIATE')
+            cursor.execute(
+                '''
+                    UPDATE step
+                    SET status = ?
+                    WHERE hash = ?
+                ''',
+                (status, self.hash)
+            )
+            cursor.execute('COMMIT')
+        except Exception as ex:
+            cursor.execute('ROLLBACK')
+            raise ex
+
+PRIORITY_APT = 0
+def apt(name, **kwargs):
+    return Command(
+        name,
+        ['sudo', 'apt', 'install', name],
+        PRIORITY_APT,
+        rollback_command=['sudo', 'apt', 'remove', name],
+        **kwargs,
+    )
+
+PRIORITY_SNAP = 1
+def snap(name, **kwargs):
+    return Command(
+        name,
+        ['sudo', 'snap', 'install', name],
+        PRIORITY_SNAP,
+        rollback_command=['sudo', 'snap', 'remove', '--purge', name],
+        **kwargs
+    )
+
+PRIORITY_CLASSIC_SNAP = 2
+def classic_snap(name, **kwargs):
+    return Command(
+        name,
+        ['sudo', 'snap', 'install', '--classic', name],
+        PRIORITY_CLASSIC_SNAP,
+        rollback_command=['sudo', 'snap', 'remove', '--purge', name],
+        **kwargs
+    )
+
+PRIORITY_CARGO = 3
+def cargo(name, **kwargs):
+    return Command(
+        name,
+        ['cargo', 'install', '--locked', name],
+        PRIORITY_CARGO,
+        rollback_command=['cargo', 'uninstall', name],
+        **kwargs
+    )
+
+def main():
+    tasks = all_tasks()
+    conn = ensure_setup('dotfiles.db', tasks)
+    cursor = conn.cursor()
+
+    tasks_by_hash = { task.hash: task for task in tasks }
+
+    to_rollback_query = cursor.execute('''
+        SELECT hash
+        FROM step
+        WHERE status = 1
+        ORDER BY
+            priority ASC,
+            name ASC
+    ''')
+    to_rollback = [ tasks_by_hash[hash] for (hash,) in to_rollback_query ]
+    for task in to_rollback:
+        task.rollback(conn)
+
+    to_enact_query = cursor.execute('''
+        SELECT hash
+        FROM step
+        WHERE status = 0
+        ORDER BY
+            priority ASC,
+            name ASC
+    ''')
+    to_enact = [ tasks_by_hash[hash] for (hash,) in to_enact_query ]
+    for task in to_enact:
+        task.enact(conn)
+
+def all_tasks():
+    return [
+        apt('curl'),
+        apt(
+            'fish',
+            post_install='sudo chsh -s /usr/bin/fish',
+        ),
+        apt('gcc'),
+        apt('gnome-tweaks'),
+        apt('golang-go'),
+        apt('luajit'),
+        apt('luarocks'),
+        apt('make'),
+        apt('ripgrep'),
+        apt(
+            'wezterm',
+            pre_install=[
+                "curl -fsSL https://apt.fury.io/wez/gpg.key | sudo gpg --yes --dearmor -o /etc/apt/keyrings/wezterm-fury.gpg",
+                "echo 'deb [signed-by=/etc/apt/keyrings/wezterm-fury.gpg] https://apt.fury.io/wez/ * *' | sudo tee /etc/apt/sources.list.d/wezterm.list",
+                "sudo apt update",
+            ],
+        ),
+        snap('brave'),
+        snap('discord'),
+        snap(
+            'obs-studio',
+            post_install=[
+                "sudo snap connect obs-studio:kernel-module-observe",
+                "sudo snap connect obs-studio:screencast-legacy",
+                "sudo apt -y install v4l2loopback-dkms v4l2loopback-utils",
+                "echo 'options v4l2loopback devices=1 video_nr=13 card_label=\"OBS Virtual Camera\" exclusive_caps=1' | sudo tee /etc/modprobe.d/v4l2loopback.conf",
+                "echo \"v4l2loopback\" | sudo tee /etc/modules-load.d/v4l2loopback.conf",
+                "sudo modprobe -r v4l2loopback",
+                "sudo modprobe v4l2loopback devices=1 video_nr=13 card_label=\"OBS Virtual Camera\" exclusive_caps=1",
+            ],
+        ),
+        snap('steam'),
+        snap(
+            'yuescript',
+            post_install='sudo snap alias yuescript.yue yue'
+        ),
+        classic_snap('rustup'),
+        classic_snap('nvim'),
+        cargo('fs-find'),
+        cargo('starship'),
+        cargo('cargo-nextest'),
+    ]
+
+def ensure_setup(db_path, tasks):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
@@ -179,11 +276,14 @@ def ensure_setup(db_path):
     try:
         cursor.execute('BEGIN IMMEDIATE')
         cursor.executescript(SCHEMA)
-        insert_data(cursor)
+        for task in tasks:
+            task.declare(cursor)
         cursor.execute('COMMIT')
     except Exception as ex:
         cursor.execute('ROLLBACK')
         raise ex
+
+    return conn
 
     # TODO(kcza): add additional commands / extension tables for:
     # - Post-commands
@@ -192,118 +292,122 @@ def ensure_setup(db_path):
     #   - git setup
     # - Pre-commands
     #   - Setup keyrings and apt thingies
-    return conn
 
-def insert_data(cursor):
-    packages = [{
-        'name': 'curl',
-        'kind': 0,
-    }, {
-        'name': 'fish',
-        'kind': 0,
-        'post-install': [
-            'sudo chsh -s /usr/bin/fish',
-        ],
-    }, {
-        'name': 'gcc',
-        'kind': 0,
-    }, {
-        'name': 'gnome-tweaks',
-        'kind': 0,
-    }, {
-        'name': 'golang-go',
-        'kind': 0,
-    }, {
-        'name': 'luajit',
-        'kind': 0,
-    }, {
-        'name': 'luarocks',
-        'kind': 0,
-    }, {
-        'name': 'make',
-        'kind': 0,
-    }, {
-        'name': 'ripgrep',
-        'kind': 0,
-    }, {
-        'name': 'wezterm',
-        'kind': 0,
-        'pre-install': [
-            "curl -fsSL https://apt.fury.io/wez/gpg.key | sudo gpg --yes --dearmor -o /etc/apt/keyrings/wezterm-fury.gpg",
-            "echo 'deb [signed-by=/etc/apt/keyrings/wezterm-fury.gpg] https://apt.fury.io/wez/ * *' | sudo tee /etc/apt/sources.list.d/wezterm.list",
-            "sudo apt update",
-        ],
-    }, {
-        'name': 'brave',
-        'kind': 1,
-    }, {
-        'name': 'discord',
-        'kind': 1,
-    }, {
-        'name': 'obs-studio',
-        'kind': 1,
-        'post-install': [
-            "sudo snap connect obs-studio:kernel-module-observe",
-            "sudo snap connect obs-studio:screencast-legacy",
-            "sudo apt -y install v4l2loopback-dkms v4l2loopback-utils",
-            "echo 'options v4l2loopback devices=1 video_nr=13 card_label=\"OBS Virtual Camera\" exclusive_caps=1' | sudo tee /etc/modprobe.d/v4l2loopback.conf",
-            "echo \"v4l2loopback\" | sudo tee /etc/modules-load.d/v4l2loopback.conf",
-            "sudo modprobe -r v4l2loopback",
-            "sudo modprobe v4l2loopback devices=1 video_nr=13 card_label=\"OBS Virtual Camera\" exclusive_caps=1",
-        ]
-    }, {
-        'name': 'steam',
-        'kind': 1,
-    }, {
-        'name': 'nvim',
-        'kind': 2,
-    }, {
-        'name': 'rustup',
-        'kind': 2,
-    }, {
-        'name': 'yuescript',
-        'kind': 2,
-    }, {
-        'name': 'fd-find',
-        'kind': 3,
-    }, {
-        'name': 'starship',
-        'kind': 3,
-    }, {
-        'name': 'cargo-nextest',
-        'kind': 3,
-    }]
-    for spec in packages:
-        cursor.execute(
-            '''
-                INSERT INTO package (name, kind) VALUES (?, ?)
-            ''',
-            (spec['name'], spec['kind']),
-        )
-        if 'pre-install' in spec:
-            for (sequence_number, command) in enumerate(spec['pre-install']):
-                cursor.execute(
-                    '''
-                        INSERT INTO extra_commands (command, kind, package_id, sequence_number)
-                        SELECT ?, 0, package.id, ?
-                        FROM package
-                        WHERE
-                            package.name = ?
-                    ''',
-                    (command, 1+sequence_number, spec['name']),
-                )
-        if 'post-install' in spec:
-            for (sequence_number, command) in enumerate(spec['post-install']):
-                cursor.execute(
-                    '''
-                        INSERT INTO extra_commands (command, kind, package_id, sequence_number)
-                        SELECT ?, 1, package.id, ?
-                        FROM package
-                        WHERE
-                            package.name = ?
-                    ''',
-                    (command, 1+sequence_number, spec['name']),
-                )
+# def insert_data(cursor):
+#     packages = [{
+#         'name': 'curl',
+#         'kind': 0,
+#     }, {
+#         'name': 'fish',
+#         'kind': 0,
+#         'post-install': [
+#             'sudo chsh -s /usr/bin/fish',
+#         ],
+#     }, {
+#         'name': 'gcc',
+#         'kind': 0,
+#     }, {
+#         'name': 'gnome-tweaks',
+#         'kind': 0,
+#     }, {
+#         'name': 'golang-go',
+#         'kind': 0,
+#     }, {
+#         'name': 'luajit',
+#         'kind': 0,
+#     }, {
+#         'name': 'luarocks',
+#         'kind': 0,
+#     }, {
+#         'name': 'make',
+#         'kind': 0,
+#     }, {
+#         'name': 'ripgrep',
+#         'kind': 0,
+#     }, {
+#         'name': 'wezterm',
+#         'kind': 0,
+#         'pre-install': [
+#             "curl -fsSL https://apt.fury.io/wez/gpg.key | sudo gpg --yes --dearmor -o /etc/apt/keyrings/wezterm-fury.gpg",
+#             "echo 'deb [signed-by=/etc/apt/keyrings/wezterm-fury.gpg] https://apt.fury.io/wez/ * *' | sudo tee /etc/apt/sources.list.d/wezterm.list",
+#             "sudo apt update",
+#         ],
+#     }, {
+#         'name': 'brave',
+#         'kind': 1,
+#     }, {
+#         'name': 'discord',
+#         'kind': 1,
+#     }, {
+#         'name': 'obs-studio',
+#         'kind': 1,
+#         'post-install': [
+#             "sudo snap connect obs-studio:kernel-module-observe",
+#             "sudo snap connect obs-studio:screencast-legacy",
+#             "sudo apt -y install v4l2loopback-dkms v4l2loopback-utils",
+#             "echo 'options v4l2loopback devices=1 video_nr=13 card_label=\"OBS Virtual Camera\" exclusive_caps=1' | sudo tee /etc/modprobe.d/v4l2loopback.conf",
+#             "echo \"v4l2loopback\" | sudo tee /etc/modules-load.d/v4l2loopback.conf",
+#             "sudo modprobe -r v4l2loopback",
+#             "sudo modprobe v4l2loopback devices=1 video_nr=13 card_label=\"OBS Virtual Camera\" exclusive_caps=1",
+#         ]
+#     }, {
+#         'name': 'steam',
+#         'kind': 1,
+#     }, {
+#         'name': 'nvim',
+#         'kind': 2,
+#     }, {
+#         'name': 'rustup',
+#         'kind': 2,
+#     }, {
+#         'name': 'yuescript',
+#         'kind': 2,
+#     }, {
+#         'name': 'fd-find',
+#         'kind': 3,
+#     }, {
+#         'name': 'starship',
+#         'kind': 3,
+#     }, {
+#         'name': 'cargo-nextest',
+#         'kind': 3,
+#     }]
+#     for spec in packages:
+#         cursor.execute('''
+#             INSERT INTO step DEFAULT VALUES;
+#         ''')
+#         cursor.execute(
+#             '''
+#                 INSERT INTO package (name, kind, step_id)
+#                 SELECT ?, ?, 1+MAX(step.id)
+#                 FROM step
+#             ''',
+#             (spec['name'], spec['kind']),
+#         )
+#         if 'pre-install' in spec:
+#             for (sequence_number, command) in enumerate(spec['pre-install']):
+#                 cursor.execute(
+#                     '''
+#                         INSERT INTO extra_commands (command, kind, package_id, sequence_number)
+#                         SELECT ?, 0, package.id, ?
+#                         FROM package
+#                         WHERE
+#                             package.name = ?
+#                     ''',
+#                     (command, 1+sequence_number, spec['name']),
+#                 )
+#         if 'post-install' in spec:
+#             for (sequence_number, command) in enumerate(spec['post-install']):
+#                 cursor.execute(
+#                     '''
+#                         INSERT INTO extra_commands (command, kind, package_id, sequence_number)
+#                         SELECT ?, 1, package.id, ?
+#                         FROM package
+#                         WHERE
+#                             package.name = ?
+#                     ''',
+#                     (command, 1+sequence_number, spec['name']),
+#                 )
 
 if __name__ == '__main__':
     main()
