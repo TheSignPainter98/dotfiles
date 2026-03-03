@@ -1,0 +1,12 @@
+export name = 'stevearc/oil.nvim'
+
+export cmd = 'Oil'
+
+export keys =
+  * { 'go', '<cmd>Oil<cr>', desc: 'Open filesystem editor' }
+
+export config = ->
+  import 'oil' as :setup
+  setup
+    view_options:
+      show_hidden: true

@@ -1,0 +1,75 @@
+{
+  nvim_create_autocmd: autocmd,
+  nvim_create_augroup: autogroup,
+  :nvim_create_user_command
+} = vim.api
+
+with vim.opt
+  -- Appearance
+  .wrap = true
+  .number = true
+  .relativenumber = true
+  .hlsearch = true
+  .showcmd = true
+
+  .cursorcolumn = true
+
+  .fillchars =
+    wbr: ' '
+    vert: ' '
+    eob: '·'
+
+-- Removed from nvim v0.10
+-- with vim.o
+--   .t_ut = ''
+
+for event in *{ 'TermOpen', 'TermEnter' }
+  autocmd event,
+    pattern: '*'
+    callback: ->
+      with vim.opt
+        .number = false
+        .relativenumber = false
+        .wrap = true
+autocmd 'TermLeave',
+  pattern: '*'
+  callback: ->
+    with vim.opt
+      .number = true
+      .relativenumber = true
+      .wrap = true
+
+-- vim.cmd [[ syntax conceal on ]]
+--
+-- vim.cmd [[ highlight @conceal cterm=NONE ctermbg=NONE ctermfg=darkblue ]]
+-- conceal = ->
+--   conceal_groups =
+--     * '@punctuation.delimiter'
+--     * '@punctuation.delimiter.markdown'
+--   for group in *conceal_groups
+--     vim.cmd "highlight #{group} cterm=NONE ctermbg=NONE ctermfg=darkblue"
+-- nvim_create_user_command 'Conceal', conceal, {}
+--
+-- conceal_fancy = ->
+--   vim.o.conceallevel = 1
+--   substitutions =
+--     'λ':
+--       * 'fn'
+--       * 'func'
+--       * 'lambda'
+--     '←': 'return'
+--   for symbol, keywords in pairs substitutions
+--     if 'table' != type keywords
+--       keywords = { keywords }
+--     for keyword in *keywords
+--       vim.cmd "syntax keyword Normal #{keyword} conceal cchar=#{symbol}"
+-- nvim_create_user_command 'ConcealFancy', conceal_fancy, {}
+--
+-- autocmd 'VimEnter',
+--   pattern: '*'
+--   group: autogroup 'conceal', clear: true
+--   callback: conceal_fancy
+--
+-- unconceal_fancy = ->
+--   vim.o.conceallevel = 0
+-- nvim_create_user_command 'UnconcealFancy', unconceal_fancy, {}

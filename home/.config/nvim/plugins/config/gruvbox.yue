@@ -1,0 +1,11 @@
+export name = 'ellisonleao/gruvbox.nvim'
+export lazy = false
+
+export config = ->
+  import 'gruvbox' as :setup
+  setup
+    transparent_mode: true
+
+  vim.o.background = 'dark'
+  vim.o.termguicolors = true
+  vim.cmd 'colorscheme gruvbox'

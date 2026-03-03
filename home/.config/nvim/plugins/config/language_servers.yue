@@ -1,0 +1,20 @@
+export servers =
+  c: name: 'clangd'
+  go: name: 'gopls'
+  lua:
+    name: 'lua_ls'
+    settings:
+      Lua:
+        runtime:
+          version: 'LuaJIT'
+        diagnostics:
+          globals:
+            * 'vim'
+            * 'em'
+        workspace:
+          library: vim.api.nvim_get_runtime_file '', true
+        telemetry:
+          enable: false
+  toml: name: 'taplo'
+  yaml: name: 'yamlls'
+  -- markdown:

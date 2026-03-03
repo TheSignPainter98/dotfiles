@@ -1,0 +1,63 @@
+export name = 'hrsh7th/nvim-cmp'
+export dependencies =
+  * 'L3MON4D3/LuaSnip'
+  * 'hrsh7th/cmp-buffer'
+  * 'hrsh7th/cmp-cmdline'
+  * 'hrsh7th/cmp-nvim-lsp'
+  * 'hrsh7th/cmp-path'
+  * 'lukas-reineke/cmp-under-comparator'
+export lazy = false
+
+export config = ->
+  import 'cmp'
+  import 'luasnip'
+
+  with cmp
+    .setup
+      snippet:
+        expand: (args) ->
+          luasnip.lsp_expand args.body
+      mapping: .mapping.preset.insert
+        ['<C-b>']: .mapping.scroll_docs -4
+        ['<C-f>']: .mapping.scroll_docs 4
+        ['<C-space>']: .mapping.complete!
+        ['<C-e>']: .mapping.abort!
+        ['<CR>']: .mapping.confirm select: true
+      sources: .config.sources {
+        { name: 'nvim_lsp' }
+        { name: 'luasnip' }
+      }, {
+        { name: 'buffer' }
+      }
+      sorting:
+        comparators:
+          * .config.compare.offset
+          * .config.compare.exact
+          * .config.compare.score
+          * .config.compare.recently_used
+          * (require 'cmp-under-comparator').under
+          * .config.compare.kind
+          -- * .config.compare.sort_text
+          -- * .config.compare.length
+          -- * .config.compare.order
+
+    -- TODO(kcza): check out petertriho/cmp-git for git completions!
+    -- .setup.filetype 'gitcommit',
+    --   sources: .config.sources {
+    --     { name: 'git' }
+    --   }, {
+    --     { name: 'buffer' }
+    --   }
+
+    .setup.cmdline { '/', '?' },
+      mapping: .mapping.preset.cmdline!
+      sources:
+        * { name: 'buffer' }
+
+    .setup.cmdline ':',
+      mapping: .mapping.preset.cmdline!
+      sources: .config.sources {
+        { name: 'path' }
+      }, {
+        { name: 'cmdline'}
+      }

@@ -1,0 +1,3 @@
+export name = 'kana/vim-textobj-user'
+
+export init = ->

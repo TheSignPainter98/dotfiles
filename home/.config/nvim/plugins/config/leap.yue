@@ -1,0 +1,43 @@
+export name = 'ggandor/leap.nvim'
+
+import win_getid from vim.fn
+import nvim_tabpage_list_wins, nvim_win_get_config from vim.api
+
+local leap
+mode =
+  * 'n'
+  * 'x'
+  * 'o'
+leap_bidirectional_keymap = 'gg'
+mappings =
+  * keys: 'gf'
+    desc: 'Leap forward'
+    callback: -> leap {}
+    :mode
+  * keys: 'gF'
+    desc: 'Leap backward'
+    callback: -> leap backward: true
+    :mode
+  * keys: '<leader>gg'
+    desc: 'Leap'
+    callback: -> leap target_windows: { win_getid! }
+    :mode
+  * keys: '<leader>GG'
+    desc: 'Global leap'
+    callback: -> leap target_windows: [ id for id in *nvim_tabpage_list_wins 0 when (nvim_win_get_config id).focusable ]
+    :mode
+
+export keys = with {}
+  for mapping in *mappings
+    [] = with vim.deepcopy mapping
+      [1] = .keys
+      .keys = nil
+      .callback = nil
+
+export config = ->
+  import 'leap' as :init_highlight, :leap
+  init_highlight true
+
+  for mapping in *mappings
+    with mapping
+      vim.keymap.set .mode, .keys, .callback

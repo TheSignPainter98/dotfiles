@@ -1,0 +1,56 @@
+with vim.g
+  .mapleader = ' '
+  .maplocalleader = ' '
+
+with vim.keymap
+  -- General
+  .set {'n', 'v'}, ';', ':'
+  .set 'n', ',', ':noh<cr>'
+
+  -- Tabs
+  .set 'n', 'th', '<cmd>tabp<cr>'
+  .set 'n', 'tl', '<cmd>tabn<cr>'
+
+  -- New splits
+  .set 'n', '<leader>wh', '<cmd>vsplit<cr><cmd>Telescope find_files<cr>'
+  .set 'n', '<leader>wj', '<cmd>split<cr><C-w>j<cmd>Telescope find_files<cr>'
+  .set 'n', '<leader>wk', '<cmd>split<cr><cmd>Telescope find_files<cr>'
+  .set 'n', '<leader>wl', '<cmd>vsplit<cr><C-w>l<cmd>Telescope find_files<cr>'
+
+  -- Moving around splits
+  .set 'n', '<C-h>', '<C-w>h'
+  .set 'n', '<C-j>', '<C-w>j'
+  .set 'n', '<C-k>', '<C-w>k'
+  .set 'n', '<C-l>', '<C-w>l'
+  .set 'n', '<C-p>', '<C-w>p'
+
+  -- New terminals
+  .set 'n', '<leader>th', '<cmd>vsplit<cr><cmd>term<cr>i'
+  .set 'n', '<leader>tj', '<cmd>split<cr><cmd>term<cr>i'
+  .set 'n', '<leader>tk', '<cmd>split<cr><cmd>term<cr><C-w>Ki'
+  .set 'n', '<leader>tl', '<cmd>vsplit<cr><cmd>term<cr><C-w>Li'
+
+  -- Terminal mode
+  .set 't', '<esc><esc>', [[<C-\><C-n>]]
+  .set 't', '<C-w>h', [[<C-\><C-n><C-w>h]]
+  .set 't', '<C-w>j', [[<C-\><C-n><C-w>j]]
+  .set 't', '<C-w>k', [[<C-\><C-n><C-w>k]]
+  .set 't', '<C-w>l', [[<C-\><C-n><C-w>l]]
+  .set 't', '<C-w>p', [[<C-\><C-n><C-w>p]]
+
+  -- Reflow
+  .set 'n', '<F4>', 'gggqG'
+  .set 'n', '<F5>', '<cmd>redraw!<cr><cmd>edit %<cr>'
+
+  -- Shell
+  .set 'n', '!', ':!'
+  .set 'n', '<F11>', '<cmd>w<cr><cmd>!!<cr>'
+  .set 'n', '<F12>', '<cmd>!make<cr>'
+
+  -- Yank
+  .set 'n', 'Y', 'yy'
+
+  -- Diagnostics
+  .set 'n', ']e', (-> vim.diagnostic.goto_next!), desc: 'Go to next diagnostic'
+  .set 'n', '[e', (-> vim.diagnostic.goto_prev!), desc: 'Go to previous diagnostic'
+  .set 'n', '<leader>e', (-> vim.diagnostic.open_float!), desc: 'Inspect diagnostic'

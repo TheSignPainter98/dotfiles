@@ -1,0 +1,26 @@
+export name = 'glepnir/dashboard-nvim'
+export event = 'VimEnter'
+export dependencies =
+  * 'nvim-tree/nvim-web-devicons'
+  * 'nvim-telescope/telescope.nvim'
+
+export config = ->
+  import 'dashboard' as :setup
+  import 'core.banners' as :BANNERS
+
+  banner_name, banner = next BANNERS
+  setup
+    theme: 'hyper'
+    shortcut_type: 'number'
+    config:
+      header: with banner
+          [] = ''
+      shortcut:
+        * desc: "#{banner_name} does not approve of this message."
+          group: 'DashboardShortCut'
+      packages:
+        enable: false
+      mru:
+        limit: 3
+      footer: {}
+    disable_move: true

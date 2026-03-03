@@ -1,0 +1,167 @@
+export name = 'nvim-treesitter/nvim-treesitter'
+export lazy = false
+export dependencies = 'JoosepAlviste/nvim-ts-context-commentstring'
+
+export config = ->
+  with require 'nvim-treesitter.install'
+    .prefer_git = true
+
+  import 'nvim-treesitter.configs' as :setup
+  setup
+    ensure_installed:
+      * 'awk'
+      * 'c'
+      * 'css'
+      * 'diff'
+      * 'dot'
+      * 'git_config'
+      * 'git_rebase'
+      * 'gitattributes'
+      * 'gitcommit'
+      * 'gitignore'
+      * 'go'
+      * 'gomod'
+      * 'gosum'
+      * 'html'
+      * 'json'
+      * 'lalrpop'
+      * 'latex'
+      * 'lua'
+      * 'make'
+      * 'markdown'
+      * 'markdown_inline'
+      * 'python'
+      * 'rust'
+      * 'starlark'
+      * 'sql'
+      * 'toml'
+      * 'vim'
+      * 'yaml'
+    sync_install: false
+    auto_install: true
+    highlight:
+      enable: true
+    -- context_commentstring:
+    --   enable: true
+
+  import concat from table
+  import jobstart from vim.fn
+  import get_parser, get_node_text from vim.treesitter
+  import parse from vim.treesitter.query
+  import nvim_get_current_buf, nvim_buf_set_lines, nvim_buf_get_lines, nvim_create_user_command from vim.api
+  {
+    nvim_create_autocmd: autocmd,
+    nvim_create_augroup: autogroup,
+  } = vim.api
+
+  embedded_starlark = parse 'go', [[
+    (call_expression
+      function: (selector_expression
+        operand: (identifier) @_id (#eq? @_id "st")
+        field: (field_identifier) @_field (#eq? @_field "RunString")
+      )
+      arguments: (argument_list
+        (raw_string_literal) @starlark
+        ; (#offset! @starlark 1 0 -1 0)
+      )
+    )
+  ]]
+
+  run_formatter = (lines, expected_indent) ->
+    indent = if #lines > 2
+      lines[2]\match '^([ \t]*)'
+    else
+      ''
+    for line in *lines[2,#lines-1]
+      if (line\match '[^ \t]') and not line\match "^#{indent}"
+        return nil, "inconsistent indents: '#{indent}', '#{line}'"
+    lines = [ line\sub #indent + 1 for line in *lines ]
+
+    tmpfile = '/tmp/nvim-tmp.txt'
+    with io.open tmpfile, 'w'
+      \write concat lines, '\n'
+      \close!
+    lines = with {}
+      -- sudo snap install black
+      handle = io.popen "cat #{tmpfile} | black -q -"
+      line = handle\read '*l'
+      while line
+        [] = line
+        line = handle\read '*l'
+      handle\close!
+    os.execute "rm -f #{tmpfile}"
+
+    formatted = with {}
+      if #lines > 1
+        [] = ''
+      for line in *lines
+        unless line\match '^[ \t]*$'
+          [] = "    #{line}"
+        else
+          [] = ""
+    formatted, nil
+
+  get_root = (bufnr) ->
+    parser = get_parser bufnr, "go", {}
+    tree = parser\parse![1]
+    tree\root!
+
+  format_starlark = (bufnr=nvim_get_current_buf!) ->
+    if vim.bo[bufnr].filetype != 'go'
+      vim.notify 'can only be used inside go'
+      return
+
+    root = get_root bufnr
+    changes = with {}
+      for id, node in embedded_starlark\iter_captures root, bufnr, 0, -1
+        name = embedded_starlark.captures[id]
+        if name == 'starlark'
+          start_row, start_col, end_row, end_col = node\range!
+          indentation = string.rep '\t', start_col % 4 - 1
+          raw = do
+            raw = get_node_text node, bufnr
+            raw = raw\sub 2, #raw - 1
+            [ line for line in raw\gmatch '([^\n]*)\n' ]
+
+          formatted, err = run_formatter raw, indentation
+          if err
+            error err
+          if #formatted == 0
+            continue
+          formatted = with {}
+            for i = 1, #formatted
+              line = formatted[i]
+              if i == 1
+                { raw } = nvim_buf_get_lines bufnr, start_row, start_row+1, false
+                line = (raw\sub 1, start_col) .. '`' .. line
+              if #formatted == 1
+                { raw } = nvim_buf_get_lines bufnr, end_row, end_row+1, false
+                if raw
+                  line ..= raw\sub end_col
+              if i > 1 and #formatted > 1
+                indent = line\match '^( *)'
+                new_indent = indentation .. indent\gsub '    ', '\t'
+                line = new_indent .. line\sub #indent + 1
+              [] = line
+
+          [] =
+            :start_row
+            :start_col
+            :end_row
+            :end_col
+            :formatted
+
+    -- if #changes <= 2
+    --   assert(change.start_row == change.end_row)
+    --   { raw } = nvim_buf_get_lines bufnr, change.start_row, change.end_row, false
+    -- Apply changes backwards to avoid collisions
+    for change in *changes[#changes,1,-1]
+      nvim_buf_set_lines bufnr, change.start_row, change.end_row, false, change.formatted
+
+  nvim_create_user_command 'FormatEmbeddedStarlark', (-> format_starlark!), {}
+
+  -- with group = autogroup 'go-format-starlark', clear: true
+  --   autocmd 'BufWritePre',
+  --     :group
+  --     pattern: '*.go'
+  --     callback: -> format_starlark!

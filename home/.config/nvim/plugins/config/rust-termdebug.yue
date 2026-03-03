@@ -1,0 +1,71 @@
+export name = 'mwcz/rust-termdebug.nvim'
+export ft = 'rust'
+-- export opts =
+--   use_default_keymaps: false
+
+local breakpoints
+local cargo
+local scheduler
+
+mode = 'n'
+mappings =
+  * keys: '<leader>Dt'
+    desc: 'Debug tests'
+    callback: (...) -> cargo.debug_tests ...
+    silent: true
+    :mode
+  * keys: '<leader>Ds'
+    desc: 'Debug bin'
+    callback: (...) -> cargo.debug_bin ...
+    silent: true
+    :mode
+  * keys: '<leader>De'
+    desc: 'Debug example'
+    callback: (...) -> cargo.debug_example ...
+    silent: true
+    :mode
+  * keys: '<leader>Dx'
+    desc: 'Delete all breakpoints'
+    callback: (...) -> breakpoints.delete_all ...
+    silent: true
+    :mode
+  * keys: '<leader>Dp'
+    desc: 'Pin thread'
+    callback: (...) -> scheduler.lock ...
+    :mode
+  * keys: '<leader>Dv'
+    desc: 'Show vars pane'
+    command: '<cmd>Var<cr>'
+    :mode
+  * keys: '<leader>DP'
+    desc: 'Unpin thread'
+    callback: (...) -> scheduler.unlock ...
+    :mode
+  * keys: '<leader>b'
+    desc: 'Set breakpoint'
+    callback: (...) -> breakpoints.create ...
+    silent: true
+    :mode
+  * keys: '<leader>Db'
+    desc: 'Delete breakpoint'
+    callback: (...) -> breakpoints.delete_curline ...
+    silent: true
+    :mode
+
+export keys = with {}
+  for mapping in *mappings
+    [] = with vim.deepcopy mapping
+      [1] = .keys
+      .keys = nil
+      .callback = nil
+
+export config = ->
+  require 'rust-termdebug'
+
+  cargo = require 'cargo'
+  breakpoints = require 'breakpoints'
+  scheduler = require 'scheduler'
+
+  for mapping in *mappings
+    with mapping
+      vim.keymap.set .mode, .keys, .callback ?? .command

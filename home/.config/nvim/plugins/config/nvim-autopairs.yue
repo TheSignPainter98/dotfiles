@@ -1,0 +1,13 @@
+export name = 'windwp/nvim-autopairs'
+export event = 'InsertEnter'
+export dependencies =
+  * 'hrsh7th/nvim-cmp'
+
+export config = ->
+  import 'nvim-autopairs' as :setup
+  autopairs = setup
+    check_ts: true
+
+  import 'nvim-autopairs.completion.cmp' as :on_confirm_done
+  import 'cmp' as :event
+  event\on 'confirm_done', on_confirm_done!

@@ -1,0 +1,14 @@
+export name = 'numToStr/Comment.nvim'
+export dependencies =
+  * 'JoosepAlviste/nvim-ts-context-commentstring'
+  * 'nvim-treesitter/nvim-treesitter'
+
+export keys =
+  * { 'gcc', mode: 'n', desc: 'Toggle current line linewise comment' }
+  * { 'gbc', mode: 'n', desc: 'Toggle current line blockwise comment' }
+  * { 'gc', mode: { 'n', 'v' }, desc: 'Toggle current region linewise comment' }
+  * { 'gc', mode: { 'n', 'v' }, desc: 'Toggle current region blockwise comment' }
+
+export config = ->
+  import 'Comment' as :setup
+  setup!

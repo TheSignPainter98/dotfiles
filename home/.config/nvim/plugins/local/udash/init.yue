@@ -1,0 +1,109 @@
+local *
+local banner, subtitle
+local banner_highlight_group, subtitle_highlight_group
+
+DEFAULT_BANNER =
+  * [[ ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀ ]]
+  * [[ ⠀⠀⠀⠀⠀⠀⠀⠀⣴⣺⣻⣺⡻⣦⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡴⡽⣝⡷⡤⠀⠀⠀⠀⠀⠀⠀⠀ ]]
+  * [[ ⠀⠀⠀⠀⠀⠀⠀⢘⣞⣞⣞⡮⣟⣞⣦⢀⣠⢤⣖⣞⢾⣝⡯⡯⣗⣗⡦⣤⣀⠐⠯⡯⣗⡯⣯⠃⠀⠀⠀⠀⠀⠀⠀ ]]
+  * [[ ⠀⠀⠀⠀⠀⠀⠀⠀⢳⣳⡳⡯⣗⡷⡽⣽⣺⢽⣺⣺⢽⢮⢯⢯⣗⣗⡯⣗⣗⣗⡯⡯⣗⡯⠓⠀⠀⠀⠀⠀⠀⠀⠀ ]]
+  * [[ ⠀⠀⠀⠀⠀⠀⠀⠀⢀⣗⡯⡯⣗⣯⣻⣺⣺⢽⣺⣺⢽⢽⣝⣗⣗⣗⡯⣗⣗⣗⡯⡯⣗⡯⡷⠀⠀⠀⠀⠀⠀⠀⠀ ]]
+  * [[ ⠀⠀⠀⠀⠀⠀⠀⢀⡾⣺⢽⣝⣗⣗⣗⢷⣝⣉⡊⠊⣉⢉⠊⠨⣔⣗⡯⣗⡯⠾⠽⠙⠗⠯⠻⠀⠀⠀⠀⠀⠀⠀⠀ ]]
+  * [[ ⠀⠀⠀⠀⠀⠀⠀⢰⢯⢯⣗⣗⣗⡷⣽⣳⡳⡇⣴⣿⠛⠛⢿⣷⣆⠱⡯⡗⢓⡗⣡⣶⡷⠛⢶⣦⡄⠀⠀⠀⠀⠀⠀ ]]
+  * [[ ⠀⠀⠀⠀⠀⠀⠀⣸⢯⣗⣗⣗⣗⣟⣞⡮⣟⣆⠻⢿⣤⣤⣾⡿⠿⢈⣯⡂⠺⣅⠛⣿⣄⣄⣼⣿⡟⣠⣄⡀⠀⠀⠀ ]]
+  * [[ ⠀⠀⠀⠀⠀⠀⢠⣺⣳⣳⣳⣳⣳⣳⡳⡯⣗⣗⡷⣲⢦⢴⣔⣖⢾⢽⣺⢽⢦⣄⡑⡐⠨⠭⣩⢥⣲⣳⡳⡯⣧⡀⠀ ]]
+  * [[ ⠀⠀⠀⠀⠀⠀⣺⣺⣺⣺⣺⣺⣺⣺⢽⣝⣗⣗⡯⡯⡯⣗⡷⡽⡽⣽⣺⣝⣗⣗⡏⠁⠁⠀⠀⠙⢞⡮⣯⡻⡮⣧⠀ ]]
+  * [[ ⠀⠀⠀⠀⠀⠀⢳⣳⣳⣳⣳⣳⢗⡯⣗⣗⣗⣗⡯⡯⡯⣗⡯⣯⣻⣺⣺⣺⡺⡮⡷⣄⣀⣀⣠⡆⢸⢯⣗⡯⣟⢾⡀ ]]
+  * [[ ⠀⠀⠀⢀⢀⠀⠘⣗⡷⣽⣺⣺⢽⣝⣗⣗⣗⣗⡯⡯⡯⣗⡯⣗⣗⣗⣗⣗⡯⡯⡯⡯⣯⡻⣮⠃⣜⡯⣞⡾⡽⣽⠂ ]]
+  * [[ ⠀⠀⠀⠪⡐⢄⠀⠓⢟⣞⣞⢾⣝⣞⣞⣞⣞⢾⢽⢽⢽⡳⡯⣗⣗⣗⣗⣗⡯⣟⡽⣽⣺⢽⠊⣠⢷⣫⣗⡯⣟⡞⠀ ]]
+  * [[ ⠀⠀⠀⠱⡨⠢⡑⢄⠌⠘⠺⣽⣺⣺⣺⣺⣺⢽⢽⢽⢽⢽⠝⠓⠑⠉⠈⠑⠙⡑⢋⠓⢙⢁⣰⢽⢽⡺⣮⣻⡺⠁⠀ ]]
+  * [[ ⠀⠀⠀⠕⢌⢌⢌⠢⡑⢅⠢⡀⡈⠚⠺⣞⢾⣝⡯⡯⡯⡯⣇⡄⡐⡙⡑⢂⠀⡈⠫⢻⢽⢽⣺⢽⢽⢽⣺⠞⠀⠀⠀ ]]
+  * [[ ⠀⠀⡠⡘⠔⢔⠢⡑⢌⠢⡑⢌⠢⡑⢄⢈⠑⠳⠯⡯⡯⡯⣗⡯⣟⡽⣽⣫⢯⣏⢤⢾⢽⢽⣺⢽⣫⠟⠈⠀⠀⠀⠀ ]]
+  * [[ ⠠⡊⠔⢌⢊⠢⡑⢌⠢⡃⣊⠢⡑⡌⠆⢕⠨⡐⢄⢉⠉⠙⠓⠯⢗⡯⡷⣝⡷⡽⡽⡽⡽⠝⠚⢉⠠⡀⠀⠀⠀⠀⠀ ]]
+  * [[ ⡑⢌⢊⠆⡅⡣⢊⠢⡑⢌⠢⡑⢌⠢⡑⢅⠕⢌⠢⡡⡑⢅⠕⢄⠄⡉⠙⠓⢙⢉⣉⡄⠀⠀⢄⠥⡑⠄⠠⠀⠀⠀⠀ ]]
+  * [[ ⢌⠢⡑⢌⠢⡊⢔⢑⢌⠢⡑⢌⠢⡑⡌⠢⡑⠅⢕⠰⡨⠢⡑⢅⠪⡐⢅⢄⠉⠙⠺⠙⢀⢌⠢⡑⢌⠢⠈⢌⢄⠀⠀ ]]
+  * [[ ⠢⡑⢌⠢⡑⢌⠢⡑⢔⢑⢌⠢⡃⠁⡀⠔⢌⢊⠢⡑⢌⠪⡐⢅⠕⢌⠢⠢⡑⢅⠕⡐⢅⠢⡑⢌⠢⡑⠄⠐⠔⢅⠢ ]]
+DEFAULT_SUBTITLE =
+  * [[]]
+  * [[            you shouldn't be here.           ]]
+
+setup_called = false
+export setup = (config={}) ->
+  if setup_called
+    return
+  setup_called = true
+
+  import nvim_create_user_command from vim.api
+
+  {
+    :banner = DEFAULT_BANNER
+    :subtitle = DEFAULT_SUBTITLE
+    :highlight = {}
+  } = config
+  {
+    banner: banner_highlight_group = 'UdashBanner'
+    subtitle: subtitle_highlight_group = 'UdashSubtitle'
+  } = highlight
+
+  nvim_create_user_command 'UDash', udash, {}
+
+local dashbuf
+export udash = (buf, force=false) ->
+  if not force and dashbuf?
+    return
+
+  import nvim_create_buf, nvim_get_current_win, nvim_win_set_buf, nvim_buf_set_name, nvim_buf_set_text, nvim_set_option_value, nvim_buf_add_highlight, nvim_set_hl, nvim_create_namespace from vim.api
+
+  unless buf?
+    buf = nvim_create_buf true, true
+    nvim_buf_set_name buf, 'dash'
+    dashbuf = buf
+  win = nvim_get_current_win!
+  if dashbuf?
+    nvim_win_set_buf win, dashbuf
+    return
+
+  text = { ...banner, ...subtitle }
+  nvim_buf_set_text buf, 0, 0, -1, 0, text
+
+  line = 0
+  with ns = 0 -- nvim_create_namespace 'udash'
+    nvim_set_hl ns, banner_highlight_group, fg: '#ffc00d'
+    for _ = 1, #banner
+      ns = nvim_buf_add_highlight buf, ns, banner_highlight_group, line, 0, -1
+      line += 1
+
+  with ns = 0
+    nvim_set_hl ns, subtitle_highlight_group,
+      fg: '#df1e29'
+      italic: true
+    for _ = 1, #subtitle
+      ns = nvim_buf_add_highlight buf, ns, subtitle_highlight_group, line, 0, -1
+      line += 1
+
+  with vim.bo
+    .modifiable = false
+  with vim.opt_local
+    -- List from https://github.com/nvimdev/dashboard-nvim/blob/master/lua/dashboard/init.lua
+    .bufhidden      = 'wipe'
+    .colorcolumn    = ''
+    .foldcolumn     = '0'
+    .matchpairs     = ''
+    .buflisted      = false
+    .cursorcolumn   = false
+    .cursorline     = false
+    .list           = false
+    .number         = false
+    .relativenumber = false
+    .spell          = false
+    .swapfile       = false
+    .readonly       = false
+    .filetype       = 'dashboard'
+    .wrap           = false
+    .signcolumn     = 'no'
+    .winbar         = ''
+    .stc            = ''
+    .fillchars      =
+      eob: ' '
+
+  nvim_win_set_buf win, buf

@@ -1,0 +1,43 @@
+import 'plugins.config.language_servers' as :servers
+
+export name = 'neovim/nvim-lspconfig'
+export tag = "v2.5.0"
+export ft = [ lang for lang, _ in pairs servers ]
+export dependencies =
+  * 'williamboman/mason.nvim'
+  * 'williamboman/mason-lspconfig.nvim'
+  * 'nvim-telescope/telescope.nvim'
+
+export config = ->
+  import 'cmp_nvim_lsp' as :default_capabilities
+  import 'telescope.builtin' as :lsp_references, :lsp_implementations, :lsp_incoming_calls, :lsp_outgoing_calls
+  import tbl_extend from vim
+
+  on_attach = (_, _) ->
+    vim.notify "Language server attached!"
+    with vim.keymap
+      import buf from vim.lsp
+      .set 'n', '<leader>lr', buf.rename, desc: 'Rename'
+      .set 'n', '<leader>d', buf.definition, desc: 'Go to definition'
+      .set 'n', '<leader>la', buf.code_action, desc: 'Code action'
+      .set 'n', '<leader>lt', buf.type_definition, desc: 'Go to type definition'
+      .set 'n', '<leader>ls', buf.workspace_symbol, desc: 'Go to type definition'
+      .set 'n', '<leader>li', lsp_implementations, desc: 'See implementations'
+      .set 'n', '<leader>lR', lsp_references, desc: 'See references'
+      .set 'n', '<leader>lc', lsp_incoming_calls, desc: 'See incoming calls'
+      .set 'n', '<leader>lC', lsp_outgoing_calls, desc: 'See outgoing calls'
+      .set 'n', 'K', buf.lover, desc: 'Hover'
+
+  capabilities = default_capabilities!
+
+  -- with lspconfig.util
+  --   .default_config = tbl_extend 'force', .default_config,
+  --     :on_attach
+  --     :capabilties
+  for lang, _ in pairs servers
+	vim.lsp.enable lang
+  --     { :name, :capabilities=capabilities, :on_attach=on_attach, :settings={} } = server
+  --     lspconfig[name].setup
+  --       :settings
+  --     -- flags:
+  --     --   debounce_text_changes: 150

@@ -1,0 +1,5 @@
+export name = 'williamboman/mason.nvim'
+
+export config = ->
+  import "mason" as :setup
+  setup!

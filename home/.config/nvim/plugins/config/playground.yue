@@ -1,0 +1,9 @@
+export name = 'nvim-treesitter/playground'
+export dependencies = 'nvim-treesitter/nvim-treesitter'
+export cmd = 'TSPlaygroundToggle'
+
+export config = ->
+  import 'nvim-treesitter.configs' as :setup
+  setup
+    playground:
+      enable: true

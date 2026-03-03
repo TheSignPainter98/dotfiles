@@ -1,0 +1,14 @@
+export name = 'nvim-lualine/lualine.nvim'
+export lazy = false
+export dependencies = 'nvim-tree/nvim-web-devicons'
+
+export config = ->
+  import 'lualine' as :setup
+  setup
+    options:
+      icons_enabled: true
+      theme: 'gruvbox'
+    sections:
+      lualine_a:
+        * [1]: 'filename'
+          path: 1

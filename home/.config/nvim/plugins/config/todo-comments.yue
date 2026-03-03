@@ -1,0 +1,44 @@
+export name = 'folke/todo-comments.nvim'
+export event = 'BufEnter'
+export dependencies =
+  * 'nvim-lua/plenary.nvim'
+  * 'nvim-telescope/telescope.nvim'
+  * 'folke/trouble.nvim'
+
+local jump_next, jump_prev
+keymaps =
+  * keys: ']t'
+    mode: 'n'
+    desc:  'Jump to next todo comment'
+    callback: -> jump_next!
+  * keys: '[t'
+    mode: 'n'
+    desc:  'Jump to previous todo comment'
+    callback: -> jump_prev!
+  * keys: '<leader>ft'
+    mode: 'n'
+    desc: 'Find all todos'
+    callback: '<cmd>Telescope todo-comments todo<cr>'
+  * keys: '<leader>tt'
+    mode: 'n'
+    desc: 'Show todos in trouble'
+    callback: '<cmd>TodoTrouble<cr>'
+
+export keys = [ { k.keys, desc: k.desc } for k in *keymaps ]
+
+export config = ->
+  import 'todo-comments' as :setup, :jump_next, :jump_prev
+  setup
+    gui_style:
+      fg: 'BOLD'
+      bg: 'NONE'
+    highlight:
+      keyword: 'fg'
+      pattern: [[.*<(KEYWORDS)[^)]*\)?:]]
+    search:
+      pattern: [[\b(KEYWORDS)(\([^)]*\))?:]]
+
+
+  for keymap in *keymaps
+    with keymap
+      vim.keymap.set .mode, .keys, .callback

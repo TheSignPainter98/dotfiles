@@ -1,0 +1,18 @@
+export name = 'tanvirtin/vgit.nvim'
+export event = 'BufEnter'
+export dependencies =
+  * 'nvim-lua/plenary.nvim'
+  * 'nvim-tree/nvim-web-devicons'
+
+export config = ->
+  import 'vgit' as :setup, :hunk_up, :hunk_down, :buffer_diff_preview
+  setup!
+
+  vim.o.updatetime = 300
+  vim.o.incsearch = false
+  vim.wo.signcolumn = 'yes'
+
+  with vim.keymap
+    .set 'n', '[c', hunk_up
+    .set 'n', ']c', hunk_down
+    .set 'n', '<leader>gd', buffer_diff_preview

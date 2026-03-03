@@ -1,0 +1,38 @@
+{
+  nvim_create_autocmd: autocmd,
+  nvim_create_augroup: autogroup,
+} = vim.api
+
+export name = 'mhartington/formatter.nvim'
+export dependencies =
+  * 'williamboman/mason.nvim'
+export event = 'BufWritePost'
+export keys =
+  * { '<F3>', '<cmd>FormatWrite<cr>', desc: 'Auto-format' }
+
+-- see https://github.com/mhartington/formatter.nvim/tree/master/lua/formatter/filetypes
+formatters =
+  awk: 'prettierd' -- npm install @fsouza/prettierd -- IN ~!
+  c: 'clangformat'
+  css: 'prettierd' -- npm install @fsouza/prettierd -- IN ~!
+  go: 'gofmt'
+  html: 'prettierd' -- npm install @fsouza/prettierd -- IN ~!
+  lua: 'stylua'
+  markdown: 'prettierd' -- npm install @fsouza/prettierd -- IN ~!
+  rust: 'rustfmt'
+  sh: 'shfmt' -- go install mvdan.cc/sh/v3/cmd/shfmt@latest
+  toml: 'taplo'
+  yaml: 'yamlfmt' -- go install github.com/google/yamlfmt/cmd/yamlfmt@latest
+
+export config = ->
+  import 'formatter' as :setup
+  setup
+    filetype: with { lang, (require "formatter.filetypes.#{lang}")[formatter] for lang, formatter in pairs formatters }
+        ['*'] = (require 'formatter.filetypes.any').remove_trailing_whitespace
+
+  with group = autogroup 'autoformat', clear: true
+    autocmd 'BufWritePost',
+      pattern: '*'
+      :group
+      callback: ->
+        vim.cmd 'FormatWrite'

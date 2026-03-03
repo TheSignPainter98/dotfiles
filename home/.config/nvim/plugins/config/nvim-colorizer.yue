@@ -1,0 +1,10 @@
+export name = 'norcalli/nvim-colorizer.lua'
+export ft =
+  * 'html'
+  * 'css'
+  * 'js'
+  * 'xml'
+
+export config = ->
+  import 'colorizer' as :setup
+  setup!

@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import hashlib
+import os
 import subprocess
 import shlex
 import sqlite3
@@ -14,7 +15,7 @@ SCHEMA = f'''
 
     CREATE TABLE step (
         id INTEGER PRIMARY KEY,
-        name TEXT NOT NULL,
+        name TEXT NOT NULL UNIQUE,
         priority INTEGER NOT NULL,
         hash TEXT NOT NULL,
 
@@ -139,7 +140,7 @@ class Command:
             cursor.execute('ROLLBACK')
             raise ex
 
-PRIORITY_APT = 0
+PRIORITY_APT = 0 * 8
 def apt(name, **kwargs):
     return Command(
         name,
@@ -149,7 +150,7 @@ def apt(name, **kwargs):
         **kwargs,
     )
 
-PRIORITY_SNAP = 1
+PRIORITY_SNAP = 1 * 8
 def snap(name, **kwargs):
     return Command(
         name,
@@ -159,7 +160,7 @@ def snap(name, **kwargs):
         **kwargs
     )
 
-PRIORITY_CLASSIC_SNAP = 2
+PRIORITY_CLASSIC_SNAP = 2 * 8
 def classic_snap(name, **kwargs):
     return Command(
         name,
@@ -169,7 +170,7 @@ def classic_snap(name, **kwargs):
         **kwargs
     )
 
-PRIORITY_CARGO = 3
+PRIORITY_CARGO = 3 * 8
 def cargo(name, **kwargs):
     return Command(
         name,
@@ -177,6 +178,26 @@ def cargo(name, **kwargs):
         PRIORITY_CARGO,
         rollback_command=['cargo', 'uninstall', name],
         **kwargs
+    )
+
+PRIORITY_DOTDIR = 4 * 8
+def dotdir(dir, **kwargs):
+    source_dir = os.path.abspath(f'./home/{dir}')
+    return Command(
+        dir,
+        ['ln', '-s', source_dir, dir],
+        PRIORITY_DOTDIR,
+        **kwargs,
+    )
+
+PRIORITY_DOTFILE = 5 * 8
+def dotfile(file, **kwargs):
+    source_file = os.path.abspath(f'./home/{file}')
+    return Command(
+        file,
+        ['ln', '-s', source_file, file],
+        PRIORITY_DOTFILE,
+        **kwargs,
     )
 
 def main():
@@ -211,7 +232,11 @@ def main():
         task.enact(conn)
 
 def all_tasks():
-    return [
+    unsorted_tasks = [
+        # apt(
+        #     'mullvad',
+        #     requires='curl',
+        # ),
         apt('curl'),
         apt(
             'fish',
@@ -256,7 +281,32 @@ def all_tasks():
         cargo('fs-find'),
         cargo('starship'),
         cargo('cargo-nextest'),
+        cargo('btm'),
+        dotdir('.config/fish/'),
+        dotfile('.config/starship.toml'),
+        dotdir('.config/starship/'),
+        dotfile('.config/jj/config.toml'),
+        dotdir(
+            '.config/nvim/',
+            pre_install=['yue', 'home/.config/nvim/']
+        ),
+        dotdir(
+            '.config/wezterm/',
+            pre_install=['yue', 'home/.config/wezterm/']
+        ),
+        # font()
+        # TODO(kcza): mpv (install sync-city as a pre-command)
+        # TODO(kcza): figure out how to install the font, `fc-cache -fv`?
+        # TODO(kcza): encrypt the fonts with gpg to avoid copyright issues.
     ]
+
+    sorted_tasks = unsorted_tasks # TODO(kcza): DFS down the dependencies.
+    return sorted_tasks
+    # TODO(kcza): add additional commands / extension tables for:
+    # - Post-commands
+    #   - git setup
+    # - Pre-commands
+    #   - Setup keyrings and apt thingies
 
 def ensure_setup(db_path, tasks):
     conn = sqlite3.connect(db_path)
@@ -265,7 +315,7 @@ def ensure_setup(db_path, tasks):
     cursor.executescript('''
         PRAGMA foreign_keys = ON;
     ''')
-    
+
     query = cursor.execute('PRAGMA user_version')
     user_version = cursor.fetchone()[0]
     if user_version == VERSION:
@@ -284,14 +334,6 @@ def ensure_setup(db_path, tasks):
         raise ex
 
     return conn
-
-    # TODO(kcza): add additional commands / extension tables for:
-    # - Post-commands
-    #   - Setup obs connections
-    #   - chsh to fish
-    #   - git setup
-    # - Pre-commands
-    #   - Setup keyrings and apt thingies
 
 if __name__ == '__main__':
     main()

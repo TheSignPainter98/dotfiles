@@ -1,0 +1,22 @@
+export name = 'richardbizik/nvim-toc'
+
+export cmd =
+  * 'TOC'
+  * 'TOCList'
+
+export config = ->
+  import 'nvim-toc' as :setup
+  setup
+    toc_header: 'Table of Contents'
+
+  :nvim_create_user_command = vim.api
+
+  toc =  ->
+    import 'nvim-toc' as :generate_md_toc
+    generate_md_toc 'numbered'
+  nvim_create_user_command 'TOC', toc, {}
+
+  toc_list = ->
+    import 'nvim-toc' as :generate_md_toc
+    generate_md_toc 'list'
+  nvim_create_user_command 'TOCList', toc_list, {}

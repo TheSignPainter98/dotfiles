@@ -1,0 +1,14 @@
+{ nvim_create_autocmd: autocmd } = vim.api
+import 'plugins.config.language_servers' as :servers
+
+export name = 'williamboman/mason-lspconfig.nvim'
+export ft = [ lang for lang, _ in pairs servers ]
+export dependencies =
+  * 'williamboman/mason.nvim'
+  * 'nvim-telescope/telescope.nvim'
+
+export config = ->
+  import "mason-lspconfig" as :setup
+  setup
+    ensure_installed: [ server.name for _, server in pairs servers ]
+    automatic_installation: true

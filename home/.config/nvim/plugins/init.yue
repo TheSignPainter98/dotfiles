@@ -1,0 +1,142 @@
+import 'core.util' as :to_vim_obj
+
+package.path ..= do
+  HOME = os.getenv('HOME') ?? error 'no home!'
+  ";#{HOME}/.config/nvim/plugins/local/?.lua" ..
+    ";#{HOME}/.config/nvim/plugins/local/?/init.lua"
+
+plugins =
+  -- Completions
+  * require 'plugins.config.cmp-buffer'
+  * require 'plugins.config.cmp-cmdline'
+  * require 'plugins.config.cmp-nvim-lsp'
+  * require 'plugins.config.cmp-path'
+  * require 'plugins.config.cmp-under-comparator'
+  * require 'plugins.config.luasnip'
+  * require 'plugins.config.nvim-cmp'
+
+  -- Theme
+  * require 'plugins.config.gruvbox'
+  * require 'plugins.config.indentmini'
+  * require 'plugins.config.lualine'
+  * require 'plugins.config.nvim-web-devicons'
+  * require 'plugins.config.transparent'
+
+  -- Git
+  * require 'plugins.config.vgit'
+
+  -- -- Floating command line
+  -- * require 'plugins.config.fine-cmdline'
+
+  -- Telescope
+  * require 'plugins.config.telescope'
+
+  -- Utilities
+  * require 'plugins.config.oil'
+  * require 'plugins.config.trouble'
+  * require 'plugins.config.leap'
+
+  -- LSP helpers
+  * require 'plugins.config.nvim-lsp-endhints'
+  * require 'plugins.config.nvim-lspconfig'
+
+  -- Behaviour
+  * require 'plugins.config.comment'
+  * require 'plugins.config.formatter'
+  * require 'plugins.config.nvim-autopairs'
+  * require 'plugins.config.nvim-surround'
+  * require 'plugins.config.nvim-ts-context-commentstring'
+  * require 'plugins.config.treesj'
+
+  -- Tree-sitter
+  * require 'plugins.config.nvim-treesitter'
+
+  -- * require 'plugins.config.gh'
+  -- * require 'plugins.config.highlight-undo'
+  -- * require 'plugins.config.litee'
+  -- * require 'plugins.config.nvim-colorizer'
+  -- * require 'plugins.config.otter'
+  -- * require 'plugins.config.playground'
+  -- * require 'plugins.config.todo-comments'
+  -- * require 'plugins.config.udash'
+  -- * require 'plugins.config.vim-textobj-quote'
+  -- * require 'plugins.config.vim-textobj-user'
+
+  -- Languages
+  * require 'plugins.config.emblem'
+  * require 'plugins.config.yuescript-vim'
+  * require 'plugins.config.rustaceanvim'
+  * require 'plugins.config.crates' -- Rust
+  * require 'plugins.config.crafttweaker-vim-highlighting'
+  * require 'plugins.config.vim-rhai'
+
+  -- Text-writing
+  * require 'plugins.config.vim-litecorrect'
+
+  -- Dependencies
+  * require 'plugins.config.mason'
+  * require 'plugins.config.mason-lspconfig'
+  * require 'plugins.config.nui'
+  * require 'plugins.config.plenary'
+
+no_copy = do
+  no_copy_fields =
+    * 'name'
+  { field, true for field in *no_copy_fields }
+lazy_spec = (plugin) ->
+  with {}
+    -- Defaults
+    .lazy = true
+
+    -- Spec fields
+    [1] = plugin.name
+    for k,v in pairs plugin
+      unless no_copy[k]
+        [k] = v
+specs = with {}
+  plugin_map = { plugin.name, plugin for plugin in *plugins }
+
+  loaded = {}
+  stack = {}
+  linearise_plugins = (name) ->
+    return if loaded[name]
+    loaded[name] = true
+
+    for item in *stack
+      if item == name
+        error "dependency cycle: #{to_vim_obj stack}"
+    stack[] = name
+
+    plugin = plugin_map[name]
+    unless plugin?
+      error "unknown plugin #{name}"
+
+    if dependencies = plugin.dependencies
+      if 'table' != type dependencies
+        dependencies = { dependencies }
+      for need in *dependencies
+        linearise_plugins need
+
+    [] = lazy_spec plugin
+
+    stack[#stack] = nil
+
+  for plugin in *plugins
+    linearise_plugins plugin.name
+
+lazypath = vim.fn.stdpath'data' .. '/lazy/lazy.nvim'
+unless vim.loop.fs_stat lazypath
+  vim.fn.system
+    * 'git'
+    * 'clone'
+    * '--filter=blob:none'
+    * 'https://github.com/folke/lazy.nvim.git'
+    * '--branch=stable'
+    * lazypath
+vim.opt.rtp\prepend lazypath
+
+import 'lazy' as :setup
+setup specs,
+  install:
+    colorscheme:
+      * 'habamax'

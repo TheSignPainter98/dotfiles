@@ -1,0 +1,14 @@
+vim.loader.enable!
+
+CONFIG_DIR = vim.fn.stdpath 'config'
+package.path = table.concat {
+  "#{CONFIG_DIR}/?.lua"
+  "#{CONFIG_DIR}/?/init.lua"
+  package.path
+}, ';'
+
+import 'core.filetypes'
+import 'core.keymap'
+import 'core.behaviour'
+import 'core.theme'
+import 'plugins'

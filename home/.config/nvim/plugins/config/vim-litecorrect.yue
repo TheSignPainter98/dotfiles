@@ -1,0 +1,21 @@
+{
+  nvim_create_autocmd: autocmd,
+  nvim_create_augroup: autogroup,
+} = vim.api
+
+export name = 'reedes/vim-litecorrect'
+export ft =
+  * 'markdown'
+  * 'text'
+  * 'mail'
+  * 'gitcommit'
+
+export init = ->
+
+export config = ->
+  with group = autogroup 'litecorrect', clear: true
+    for pattern in *ft
+      autocmd 'FileType',
+        :pattern
+        :group
+        callback: -> vim.fn['litecorrect#init']!

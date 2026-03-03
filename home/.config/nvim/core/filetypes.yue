@@ -1,0 +1,54 @@
+{
+  nvim_create_autocmd: autocmd,
+  nvim_create_augroup: autogroup,
+} = vim.api
+
+fts =
+  'clang-format': 'yaml'
+  cls: 'tex'
+  lalrpop: 'lalrpop'
+  latexindent: 'yaml'
+  wxs: 'xml'
+  x: 'lex'
+  zshrc: 'zsh'
+for ext,ft in pairs fts
+  autocmd { 'BufNewFile', 'BufRead' },
+    pattern: "*.#{ext}"
+    callback: ->
+      with vim.opt_local
+        .ft = ft
+
+set_spell = ->
+  with vim.opt
+    .spell = true
+    .spelllang = 'en'
+on_ft =
+  'tex': set_spell
+  'markdown': set_spell
+  'emblem': set_spell
+  'text': set_spell
+  'mail': set_spell
+  'gitcommit': set_spell
+  'yue': ->
+    with vim.opt_local
+      .expandtab = true
+      .shiftwidth = 2
+      .tabstop = 2
+      .softtabstop = 2
+  'yaml': ->
+    with vim.opt_local
+      .expandtab = true
+      .shiftwidth = 2
+      .tabstop = 2
+  'haskell': ->
+    with vim.opt_local
+      .expandtab = true
+      .shiftwidth = 4
+      .tabstop = 4
+  'c': ->
+    with vim.opt_local
+      .cindent = true
+for pattern, callback in pairs on_ft
+  autocmd 'FileType',
+    :pattern
+    :callback

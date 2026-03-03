@@ -1,0 +1,25 @@
+{
+  nvim_create_autocmd: autocmd,
+  nvim_create_augroup: autogroup,
+  :nvim_create_user_command
+} = vim.api
+
+export name = 'TheSignPainter98/udash'
+export dir = do
+  HOME = os.getenv('HOME') ?? error 'no home!'
+  "#{HOME}/.config/nvim/plugins/local/udash/"
+export lazy = false
+export cmd = 'Udash'
+
+export config = ->
+  import 'udash' as :setup, :udash
+  setup!
+
+  -- with group = autogroup 'udash', clear: true
+  --   autocmd 'BufEnter',
+  --     pattern: '*'
+  --     :group
+  --     callback: (event) ->
+  --       with event
+  --         if .file == ''
+  --           udash .buf

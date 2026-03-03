@@ -1,0 +1,22 @@
+export name = 'VonHeikemen/fine-cmdline.nvim'
+export dependencies =
+  * 'MunifTanjim/nui.nvim'
+  * 'nvim-tree/nvim-web-devicons'
+export keys =
+  * { ';', '<cmd>FineCmdline<cr>', noremap: true, desc: 'Open floating command line' }
+export cmd = 'FineCmdline'
+
+export config = ->
+  import 'fine-cmdline' as :setup
+  import 'nvim-web-devicons' as get_icon_color: get_icon_colour
+
+  icon, _ = get_icon_colour 'tcl'
+  prompt = "#{icon} "
+
+  setup
+    cmdline:
+      :prompt
+
+-- drools
+-- ml
+-- tcl

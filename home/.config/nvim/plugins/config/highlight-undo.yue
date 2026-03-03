@@ -1,0 +1,9 @@
+export name = 'tzachar/highlight-undo.nvim'
+
+export keys =
+  * { 'u', mode: 'n', desc: 'undo' }
+  * { '<C-r>', mode: 'n', desc: 'redo' }
+
+export config = ->
+  import 'highlight-undo' as :setup
+  setup!

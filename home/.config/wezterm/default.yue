@@ -1,0 +1,119 @@
+import 'wezterm'
+
+if builder = wezterm.config_builder
+  _G._module_0 = builder
+
+fira_code =
+  family: 'Fira Code'
+  harfbuzz_features:
+    * 'ss01'
+    * 'ss06'
+    * 'ss07'
+    * 'zero'
+    * 'ss09'
+    * 'ss19'
+    * 'onum'
+    * 'ss20'
+    * 'cv14'
+    * 'cv25'
+    * 'cv26'
+    * 'cv27'
+
+export font_size = 18
+export line_height = 1.2
+export font = wezterm.font_with_fallback
+  * fira_code
+  * family: 'Noto Color Emoji'
+export font_rules =
+  * italic: true
+    font: wezterm.font_with_fallback {
+      {
+        family: 'Script12 BT'
+        italic: false
+        harfbuzz_features:
+          * 'calt'
+          * 'clig'
+      }
+      'Fira Code iScript'
+      fira_code
+      'Noto Color Emoji'
+    }
+
+export hide_mouse_cursor_when_typing = true
+export hide_tab_bar_if_only_one_tab = true
+export window_decorations = 'RESIZE' -- 'NONE' -- 'TITLE|RESIZE'
+export max_fps = 144
+
+opacities =
+  * 0.0
+  * 0.4
+  * 0.6
+  * 0.9
+  * 1.0
+curr_opacity_idx = 4
+export window_background_opacity = opacities[curr_opacity_idx]
+-- export window_background_opacity = 0.4
+-- Latte Frappe Macchiato Mocha
+export color_scheme = 'Catppuccin Mocha' -- Google Dark (Gogh)' -- 'Gruvbox Material (Gogh)' -- 'Adventure' 'Andromeda' 'Apple Classic' 'Gigavolt' 'Google Dark (Gogh)' 'Green Screen' 'Gruber'
+
+-- wezterm.on 'update-status', (window, pane) ->
+--   overrides = window\get_config_overrides! ?? {}
+--   -- if not window\is_focused!
+--   --   overrides.window_background_opacity = 0.9
+--   -- else
+--   --   overrides.window_background_opacity = nil
+--   overrides.window_decorations = window_decorations -- Repeat to avoid bug
+--   window\set_config_overrides overrides
+
+export default_cursor_style = "BlinkingBlock"
+export cursor_blink_rate = 500
+export cursor_blink_ease_in = 'EaseIn'
+export cursor_blink_ease_out = 'Constant'
+export force_reverse_video_cursor = true
+
+export warn_about_missing_glyphs = false
+
+export keys =
+  * key: 'r'
+    mods: 'CTRL|SHIFT'
+    action: wezterm.action.ReloadConfiguration
+  * key: '}'
+    mods: 'CTRL|SHIFT'
+    action: wezterm.action_callback (win, pane) ->
+      win\set_config_overrides with win\get_config_overrides! ?? {}
+        curr_opacity_idx += 1
+        if curr_opacity_idx > #opacities
+          curr_opacity_idx = #opacities
+        .window_background_opacity = opacities[curr_opacity_idx]
+  * key: '{'
+    mods: 'CTRL|SHIFT'
+    action: wezterm.action_callback (win, pane) ->
+      win\set_config_overrides with win\get_config_overrides! ?? {}
+        curr_opacity_idx -= 1
+        if curr_opacity_idx < 1
+          curr_opacity_idx = 1
+        .window_background_opacity = opacities[curr_opacity_idx]
+  -- * key: "~"
+  --   mods: 'CTRL|SHIFT'
+  --   action: wezterm.action_callback (win, pane) ->
+  --     win\set_config_overrides with win\get_config_overrides! ?? {}
+  --       .color_scheme = if .color_scheme == 'x'
+  --         'Catppuccin Mocha'
+  --       else
+  --         'Catppuccin Latte'
+  -- * key: 'p'
+  --   mods: 'CTRL|SHIFT'
+  --   action: wezterm.action_callback (win, pane) ->
+  --     win\set_config_overrides with win\get_config_overrides! ?? {}
+  --       .window_decorations = if .window_decorations == 'NONE'
+  --         'TITLE|RESIZE'
+  --       else
+  --         'NONE'
+  --       window\toast_notification 'a'
+  --       curr_opacity_idx = 1
+  --       .window_background_opacity = opacities[curr_opacity_idx]
+
+if DEBUG
+  wezterm.on 'window-config-reloaded', (window, pane) ->
+    if window\is_focused!
+      window\toast_notification 'wezterm', 'config reloaded', nil, 4000

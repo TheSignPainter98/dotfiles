@@ -1,0 +1,14 @@
+import 'wezterm'
+import getenv from os
+
+with {}
+  if profile = getenv 'WEZTERM_PROFILE'
+    switch profile
+      when 'messenger'
+        .font = wezterm.font_with_fallback
+          * family: 'Drafting* Mono'
+          * family: 'Noto Color Emoji'
+        .font_rules = nil
+        .font_size = 14
+      else
+        error "unrecognised profile '#{profile}'"

@@ -1,0 +1,4 @@
+export name = 'rhaiscript/vim-rhai'
+export ft = 'rhai'
+
+export init = ->

@@ -1,0 +1,6 @@
+import getenv from os
+global DEBUG = getenv 'WEZTERM_DEBUG'
+
+with require 'default'
+  for k,v in pairs require 'overrides'
+    [k] = v

@@ -1,0 +1,5 @@
+export name = 'ldelossa/litee.nvim'
+
+export config = ->
+  import 'litee.lib' as :setup
+  setup!

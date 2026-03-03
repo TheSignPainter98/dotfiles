@@ -1,0 +1,9 @@
+export name = 'folke/trouble.nvim'
+export dependencies = 'nvim-tree/nvim-web-devicons'
+
+export cmd = 'Trouble'
+export keys =
+  * { '<leader>tr', '<cmd>Trouble diagnostics toggle<cr>', mode: 'n', desc: 'Show trouble' }
+  * { '<leader>tR', '<cmd>Trouble diagnostics toggle filter.buf=0<cr>', mode: 'n', desc: 'Show buffer trouble' }
+
+export opts = {}

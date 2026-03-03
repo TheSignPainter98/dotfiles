@@ -1,0 +1,57 @@
+import sign_define from vim.fn
+
+vim.cmd 'packadd termdebug'
+
+with vim.opt
+  -- Whitespace
+  .autoindent = true
+  .smartindent = true
+  .breakindent = true
+  .linebreak = true
+  .shiftwidth = 4
+  .shiftround = true
+  .tabstop = 4
+  .scrolloff = 7
+
+  -- File IO
+  .autoread = true
+  .autowrite = true
+
+  -- Backups
+  .backup = false
+  .writebackup = false
+  .backupdir = vim.fn.expand '~/.vim/tmp/'
+  .directory = vim.fn.expand '~/.vim/tmp/'
+
+  -- Completions
+  .wildmode =
+    * 'longest'
+    * 'list'
+    * 'full'
+  .wildmenu = true
+
+  -- Search
+  .smartcase = true
+
+  -- Misc
+  .ttimeoutlen = 100
+  .updatetime = 1000
+
+vim.diagnostic.config
+  virtual_text:
+    prefix: '●'
+  severity_sort: true
+  float:
+    source: 'always'
+
+signs =
+  Error: " "
+  Warn: " "
+  Hint: " "
+  Info: " "
+for kind, text in pairs signs
+  hl = "DiagnosticSign#{kind}"
+  sign_define hl,
+    :text
+    texthl: hl
+    numhl: hl

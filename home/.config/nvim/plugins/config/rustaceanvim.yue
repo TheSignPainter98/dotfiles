@@ -1,0 +1,35 @@
+{
+  nvim_create_autocmd: autocmd,
+  nvim_create_augroup: autogroup,
+} = vim.api
+
+export name = 'mrcjkb/rustaceanvim'
+export version = "^5"
+export ft = 'rust'
+export lazy = true -- This plugin is already lazy
+export dependencies =
+  * 'hrsh7th/cmp-nvim-lsp'
+  * 'chrisgrieser/nvim-lsp-endhints'
+
+autocmd 'LspAttach',
+  pattern: '*.rs'
+  callback: ->
+    import 'telescope.builtin' as :lsp_references, :lsp_implementations, :lsp_incoming_calls, :lsp_outgoing_calls
+
+    -- vim.g.rustaceanvim ??= {}
+    -- vim.g.rustaceanvim.rustc ??= {}
+    -- vim.g.rustaceanvim.rustc.default_edition ??= '2024'
+
+    vim.notify "language server attached!"
+    with vim.keymap
+      import buf from vim.lsp
+      .set 'n', '<leader>lr', buf.rename, desc: 'Rename'
+      .set 'n', '<leader>d', buf.definition, desc: 'Go to definition'
+      .set 'n', '<leader>la', buf.code_action, desc: 'Code action'
+      .set 'n', '<leader>lt', buf.type_definition, desc: 'Go to type definition'
+      .set 'n', '<leader>ls', buf.workspace_symbol, desc: 'Go to type definition'
+      .set 'n', '<leader>li', lsp_implementations, desc: 'See implementations'
+      .set 'n', '<leader>lR', lsp_references, desc: 'See references'
+      .set 'n', '<leader>lc', lsp_incoming_calls, desc: 'See incoming calls'
+      .set 'n', '<leader>lC', lsp_outgoing_calls, desc: 'See outgoing calls'
+      .set 'n', 'K', buf.hover, desc: 'Hover'

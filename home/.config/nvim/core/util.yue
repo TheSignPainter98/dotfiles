@@ -1,0 +1,59 @@
+local *
+
+import concat from table
+
+export is_list = =>
+  maxk = -1
+  for k in pairs @
+    if 'number' != type k
+      return false
+    if maxk < k
+      maxk = k
+  maxk == #@
+
+export show = => repr @, true
+export to_vim_obj = => repr @, false
+
+repr = (permissive) =>
+  concat with {}
+    build_repr = =>
+      switch type @
+        when 'nil'
+          if permissive
+            [] = 'nil'
+          else
+            [] = 'none'
+        when 'boolean', 'number'
+          [] = tostring @
+        when 'string'
+          [] = "'#{@}'"
+        when 'function', 'thread', 'userdata'
+          unless permissive
+            error "value of inconvertible type: #{@}"
+          [] = "(#{tostring @})"
+        when 'table'
+          if is_list @
+            [] = '[ '
+            first = true
+            for v in *@
+              if first
+                first = false
+              else
+                [] = ', '
+              build_repr v
+            [] = ' ]'
+          else
+            [] = '{ '
+            first = true
+            for k, v in pairs @
+              if first
+                first = false
+              else
+                [] = ', '
+              build_repr k
+              [] = ': '
+              build_repr v
+            [] = ' }'
+        else
+          error "unknown type #{type @} of: #{@}"
+    build_repr @

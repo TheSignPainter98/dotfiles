@@ -1,0 +1,4 @@
+export name = 'DaeZak/crafttweaker-vim-highlighting'
+export ft = 'crafttweaker'
+
+export init = ->

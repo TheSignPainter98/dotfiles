@@ -1,0 +1,46 @@
+export name = 'xiyaowong/transparent.nvim'
+export lazy = false
+export dependencies =
+  * 'tanvirtin/vgit.nvim'
+
+export config = ->
+  import 'transparent' as :setup, :toggle
+
+  setup
+    extra_groups:
+      * 'DiagnosticSignError'
+      * 'DiagnosticSignWarn'
+      * 'DiagnosticSignHint'
+      * 'DiagnosticSignInfo'
+      * 'DiagnosticSignOk'
+      * 'GitSignsAdd'
+      * 'GitSignsAddLn'
+      * 'GitSignsChange'
+      * 'GitSignsDelete'
+      * 'GitSignsDeleteLn'
+      * 'TroubleCode'
+      * 'TroubleFile'
+      * 'TroubleIndent'
+      * 'TroubleNormal'
+      * 'TroubleSignError'
+      * 'TroubleSignOther'
+      * 'TroubleText'
+      * 'TroubleTextInformation'
+      * 'TroubleCount'
+      * 'TroubleFoldIcon'
+      * 'TroubleInformation'
+      * 'TroubleOther'
+      * 'TroubleSignHint'
+      * 'TroubleSignWarning'
+      * 'TroubleTextError'
+      * 'TroubleTextWarning'
+      * 'TroubleError'
+      * 'TroubleHint'
+      * 'TroubleLocation'
+      * 'TroublePreview'
+      * 'TroubleSignInformation'
+      * 'TroubleSource'
+      * 'TroubleTextHint'
+      * 'TroubleWarning'
+      * 'VertSplit'
+  toggle true

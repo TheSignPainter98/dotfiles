@@ -1,0 +1,10 @@
+export name = 'Wansmer/treesj'
+export dependencies = 'nvim-treesitter/nvim-treesitter'
+export keys =
+  * { '<space>m', desc: 'Toggle join/split' }
+  * { '<space>j', desc: 'Join' }
+  * { '<space>s', desc: 'Split' }
+
+export config = ->
+  import 'treesj' as :setup, :toggle
+  setup!

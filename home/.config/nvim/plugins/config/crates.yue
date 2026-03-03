@@ -1,0 +1,9 @@
+export name = 'Saecki/crates.nvim'
+export tag = 'v0.3.0'
+export dependencies =
+  * 'nvim-lua/plenary.nvim'
+export event = 'BufRead Cargo.toml'
+
+export config = ->
+  import 'crates' as :setup
+  setup!
