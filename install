@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 import hashlib
-import os
+import subprocess
 import shlex
 import sqlite3
 
@@ -292,122 +292,6 @@ def ensure_setup(db_path, tasks):
     #   - git setup
     # - Pre-commands
     #   - Setup keyrings and apt thingies
-
-# def insert_data(cursor):
-#     packages = [{
-#         'name': 'curl',
-#         'kind': 0,
-#     }, {
-#         'name': 'fish',
-#         'kind': 0,
-#         'post-install': [
-#             'sudo chsh -s /usr/bin/fish',
-#         ],
-#     }, {
-#         'name': 'gcc',
-#         'kind': 0,
-#     }, {
-#         'name': 'gnome-tweaks',
-#         'kind': 0,
-#     }, {
-#         'name': 'golang-go',
-#         'kind': 0,
-#     }, {
-#         'name': 'luajit',
-#         'kind': 0,
-#     }, {
-#         'name': 'luarocks',
-#         'kind': 0,
-#     }, {
-#         'name': 'make',
-#         'kind': 0,
-#     }, {
-#         'name': 'ripgrep',
-#         'kind': 0,
-#     }, {
-#         'name': 'wezterm',
-#         'kind': 0,
-#         'pre-install': [
-#             "curl -fsSL https://apt.fury.io/wez/gpg.key | sudo gpg --yes --dearmor -o /etc/apt/keyrings/wezterm-fury.gpg",
-#             "echo 'deb [signed-by=/etc/apt/keyrings/wezterm-fury.gpg] https://apt.fury.io/wez/ * *' | sudo tee /etc/apt/sources.list.d/wezterm.list",
-#             "sudo apt update",
-#         ],
-#     }, {
-#         'name': 'brave',
-#         'kind': 1,
-#     }, {
-#         'name': 'discord',
-#         'kind': 1,
-#     }, {
-#         'name': 'obs-studio',
-#         'kind': 1,
-#         'post-install': [
-#             "sudo snap connect obs-studio:kernel-module-observe",
-#             "sudo snap connect obs-studio:screencast-legacy",
-#             "sudo apt -y install v4l2loopback-dkms v4l2loopback-utils",
-#             "echo 'options v4l2loopback devices=1 video_nr=13 card_label=\"OBS Virtual Camera\" exclusive_caps=1' | sudo tee /etc/modprobe.d/v4l2loopback.conf",
-#             "echo \"v4l2loopback\" | sudo tee /etc/modules-load.d/v4l2loopback.conf",
-#             "sudo modprobe -r v4l2loopback",
-#             "sudo modprobe v4l2loopback devices=1 video_nr=13 card_label=\"OBS Virtual Camera\" exclusive_caps=1",
-#         ]
-#     }, {
-#         'name': 'steam',
-#         'kind': 1,
-#     }, {
-#         'name': 'nvim',
-#         'kind': 2,
-#     }, {
-#         'name': 'rustup',
-#         'kind': 2,
-#     }, {
-#         'name': 'yuescript',
-#         'kind': 2,
-#     }, {
-#         'name': 'fd-find',
-#         'kind': 3,
-#     }, {
-#         'name': 'starship',
-#         'kind': 3,
-#     }, {
-#         'name': 'cargo-nextest',
-#         'kind': 3,
-#     }]
-#     for spec in packages:
-#         cursor.execute('''
-#             INSERT INTO step DEFAULT VALUES;
-#         ''')
-#         cursor.execute(
-#             '''
-#                 INSERT INTO package (name, kind, step_id)
-#                 SELECT ?, ?, 1+MAX(step.id)
-#                 FROM step
-#             ''',
-#             (spec['name'], spec['kind']),
-#         )
-#         if 'pre-install' in spec:
-#             for (sequence_number, command) in enumerate(spec['pre-install']):
-#                 cursor.execute(
-#                     '''
-#                         INSERT INTO extra_commands (command, kind, package_id, sequence_number)
-#                         SELECT ?, 0, package.id, ?
-#                         FROM package
-#                         WHERE
-#                             package.name = ?
-#                     ''',
-#                     (command, 1+sequence_number, spec['name']),
-#                 )
-#         if 'post-install' in spec:
-#             for (sequence_number, command) in enumerate(spec['post-install']):
-#                 cursor.execute(
-#                     '''
-#                         INSERT INTO extra_commands (command, kind, package_id, sequence_number)
-#                         SELECT ?, 1, package.id, ?
-#                         FROM package
-#                         WHERE
-#                             package.name = ?
-#                     ''',
-#                     (command, 1+sequence_number, spec['name']),
-#                 )
 
 if __name__ == '__main__':
     main()
