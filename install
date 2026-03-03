@@ -6,7 +6,7 @@ import subprocess
 import shlex
 import sqlite3
 
-DRY_RUN = True
+DRY_RUN = False
 
 VERSION = 3
 SCHEMA = f'''
