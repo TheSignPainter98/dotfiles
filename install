@@ -52,19 +52,17 @@ class Command:
         self.post_rollback = post_rollback
 
         hasher = hashlib.sha256()
-        def hash(command):
+        def update_hash(command):
             if command is None:
                 hasher.update(b'')
-            else:
-                hasher.update(bytes(len(command)))
-                for part in command:
-                    hasher.update(bytes(part, 'utf-8'))
-        hash(command)
-        hash(rollback_command)
-        hash(pre_install)
-        hash(post_install)
-        hash(pre_rollback)
-        hash(post_rollback)
+                return
+            hasher.update(hash(tuple(command)).to_bytes(8, 'little', signed=True))
+        update_hash(command)
+        update_hash(rollback_command)
+        update_hash(pre_install)
+        update_hash(post_install)
+        update_hash(pre_rollback)
+        update_hash(post_rollback)
         self.hash = hasher.hexdigest()
 
     def declare(self, cursor):
@@ -360,6 +358,9 @@ class System:
 
     def run(self):
         subprocess.run(self.command, shell=True).check_returncode()
+
+    def __hash__(self):
+        return hash(self.command)
 
 def ensure_setup(db_path, tasks):
     conn = sqlite3.connect(db_path)
