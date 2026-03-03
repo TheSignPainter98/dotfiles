@@ -228,6 +228,11 @@ def insert_data(cursor):
     }, {
         'name': 'wezterm',
         'kind': 0,
+        'pre-install': [
+            "curl -fsSL https://apt.fury.io/wez/gpg.key | sudo gpg --yes --dearmor -o /etc/apt/keyrings/wezterm-fury.gpg",
+            "echo 'deb [signed-by=/etc/apt/keyrings/wezterm-fury.gpg] https://apt.fury.io/wez/ * *' | sudo tee /etc/apt/sources.list.d/wezterm.list",
+            "sudo apt update",
+        ],
     }, {
         'name': 'brave',
         'kind': 1,
@@ -237,6 +242,15 @@ def insert_data(cursor):
     }, {
         'name': 'obs-studio',
         'kind': 1,
+        'post-install': [
+            "sudo snap connect obs-studio:kernel-module-observe",
+            "sudo snap connect obs-studio:screencast-legacy",
+            "sudo apt -y install v4l2loopback-dkms v4l2loopback-utils",
+            "echo 'options v4l2loopback devices=1 video_nr=13 card_label=\"OBS Virtual Camera\" exclusive_caps=1' | sudo tee /etc/modprobe.d/v4l2loopback.conf",
+            "echo \"v4l2loopback\" | sudo tee /etc/modules-load.d/v4l2loopback.conf",
+            "sudo modprobe -r v4l2loopback",
+            "sudo modprobe v4l2loopback devices=1 video_nr=13 card_label=\"OBS Virtual Camera\" exclusive_caps=1",
+        ]
     }, {
         'name': 'steam',
         'kind': 1,
