@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+
+set -eu
+
+# Don't know why the prompt starts bold, but this clears it.
+echo -ne '\033[0m'
+
+# Reflect the current repo state, and then don't check it again for the rest of the script.
+jj debug snapshot
+ARGS="--ignore-working-copy --at-op=@ --no-pager"
+LOG="jj log $ARGS --no-graph"
+
+root='trunk()'
+
+function print_delta_to() {
+  local target=$1
+  local extra_template=${2:-'""'}
+  # Replace `wc` with --count after jj v0.36.0.
+  down=$(echo $($LOG --color never -r "$target..$root" -T '"n"' | wc -c))
+  up=$(echo $($LOG --color never -r "$root..$target" -T '"n"' | wc -c))
+  if [ $down -ne 0 -o $up -ne 0 ]; then
+    $LOG --limit 1 --color always -r "$target" -T "
+      separate(' ',
+        concat(
+          if($down > 0, label('diff removed', $down ++ '⇣')),
+          if($up > 0, label('diff added', $up ++ '⇡'))),
+        bookmarks,
+        $extra_template
+      )++' '"
+  fi
+  root="$target"
+}
+
+# We want to find the nearest bookmarks to the current revision.
+# Treat either @ or @- as the "current" revision depending on whether @ has a description.
+current=$($LOG --color never --limit 1 -r @ --template 'if(description || parents.len() > 1, "@", "@-")')
+
+$LOG --limit 1 --color always -r 'trunk()' --template 'separate(" ", bookmarks)'
+echo -n ' '
+
+parent_branches=($($LOG --color never -r "heads(trunk()..$current- & (bookmarks() | remote_bookmarks()))" -T 'change_id++" "'))
+if [ ${#parent_branches[*]} -eq 1 ]; then
+  print_delta_to "${parent_branches[0]}"
+fi
+
+# Getting the full diff is slower than just the file count, but nice to see.
+DIFF_TEMPLATE="concat(
+    label('diff modified', self.diff().files().len() ++ '✏️'),
+    label('diff added', self.diff().stat().total_added() ++ '+'),
+    label('diff removed', self.diff().stat().total_removed() ++ '-'),
+  )"
+
+print_delta_to "$current" "separate(' ',
+  label('commit node working_copy', '$current'),
+  concat(
+    if(conflict, '💥'),
+    if(divergent, '🚧'),
+    if(hidden, '👻'),
+    if(immutable, '🔒')),
+  if(current_working_copy && self.diff().files().len() > 0, $DIFF_TEMPLATE),
+  coalesce(
+    truncate_end(29, label('description first_line', description.first_line()), '…'),
+    '(no description set)',
+  )
+)"
+
+if [ $current != "@" ]; then
+  $LOG --limit 1 --color always -r '@' --template "if(self.diff().files().len() > 0, $DIFF_TEMPLATE)"
+fi
+
+child_branches=($($LOG --color never -r "roots($current:: & (bookmarks() | remote_bookmarks()))" -T 'change_id++" "'))
+
+if [ ${#child_branches[*]} -eq 1 ]; then
+  print_delta_to "${child_branches[0]}"
+fi
