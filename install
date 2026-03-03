@@ -307,28 +307,3 @@ def insert_data(cursor):
 
 if __name__ == '__main__':
     main()
-
-# set -ve
-#
-# sudo apt install ripgrep
-# sudo snap install yuescript --classic
-# sudo snap alias yuescript.yue yue
-#
-# sudo snap install rustup --classic
-# rustup toolchain install stable
-# cargo install cargo-nextest
-#
-# sudo snap install nvim --classic
-# cargo install fd-find
-# sudo apt install luajit luarocks
-#
-# sudo snap install obs-studio
-# sudo snap connect obs-studio:kernel-module-observe
-# sudo snap connect obs-studio:screencast-legacy
-# sudo apt -y install v4l2loopback-dkms v4l2loopback-utils
-# echo 'options v4l2loopback devices=1 video_nr=13 card_label="OBS Virtual Camera" exclusive_caps=1' | sudo tee /etc/modprobe.d/v4l2loopback.conf
-# echo "v4l2loopback" | sudo tee /etc/modules-load.d/v4l2loopback.conf
-# sudo modprobe -r v4l2loopback
-# sudo modprobe v4l2loopback devices=1 video_nr=13 card_label="OBS Virtual Camera" exclusive_caps=1
-#
-# sudo snap install brave
