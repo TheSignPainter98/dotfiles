@@ -261,6 +261,7 @@ def all_tasks():
         apt('luarocks'),
         apt('make'),
         apt('ripgrep'),
+        apt('sqlite3'),
         apt(
             'wezterm',
             pre_install=[
