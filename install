@@ -70,7 +70,8 @@ class Command:
     def declare(self, cursor):
         cursor.execute(
             '''
-                INSERT INTO step (name, priority, hash)
+                INSERT OR IGNORE
+                INTO step (name, priority, hash)
                 VALUES (?, ?, ?)
             ''',
             (self.name, self.priority, self.hash),
@@ -341,21 +342,20 @@ def all_tasks():
 def ensure_setup(db_path, tasks):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
-
-    cursor.executescript('''
-        PRAGMA foreign_keys = ON;
-    ''')
-
-    query = cursor.execute('PRAGMA user_version')
-    user_version = cursor.fetchone()[0]
-    if user_version == VERSION:
-        return conn # Already setup.
-    if user_version != 0:
-        raise Exception(f'db at {db_path} incompatible, delete then retry')
-
     try:
+        cursor.executescript('''
+            PRAGMA foreign_keys = ON;
+        ''')
+
         cursor.execute('BEGIN IMMEDIATE')
-        cursor.executescript(SCHEMA)
+
+        query = cursor.execute('PRAGMA user_version')
+        user_version = cursor.fetchone()[0]
+        if user_version == 0:
+            cursor.executescript(SCHEMA)
+        elif user_version != VERSION:
+            raise Exception(f'db at {db_path} incompatible, delete then retry')
+
         for task in tasks:
             task.declare(cursor)
         cursor.execute('COMMIT')
