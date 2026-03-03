@@ -115,7 +115,7 @@ class Command:
         print(f'$ {' '.join(command)}')
         if DRY_RUN:
             return
-        subprocess.run(command)
+        subprocess.run(command).check_returncode()
 
     def record_status(self, conn, status):
         statuses = {
@@ -261,6 +261,13 @@ def all_tasks():
         apt('luarocks'),
         apt('make'),
         apt(
+            'libnvidia-gl-590:i386',
+            pre_install=[
+                'sudo dpkg --add-architecture i386',
+                'sudo apt update',
+            ],
+        ),
+        apt(
             'plocate',
             post_install='sudo updatedb',
         ),
@@ -269,8 +276,10 @@ def all_tasks():
         apt(
             'wezterm',
             pre_install=[
-                "curl -fsSL https://apt.fury.io/wez/gpg.key | sudo gpg --yes --dearmor -o /etc/apt/keyrings/wezterm-fury.gpg",
-                "echo 'deb [signed-by=/etc/apt/keyrings/wezterm-fury.gpg] https://apt.fury.io/wez/ * *' | sudo tee /etc/apt/sources.list.d/wezterm.list",
+                ""
+                "curl -fsSL https://apt.fury.io/wez/gpg.key | sudo gpg --yes --dearmor -o /usr/share/keyrings/wezterm-fury.gpg",
+                "echo 'deb [signed-by=/usr/share/keyrings/wezterm-fury.gpg] https://apt.fury.io/wez/ * *' | sudo tee /etc/apt/sources.list.d/wezterm.list",
+                "sudo chmod 644 /usr/share/keyrings/wezterm-fury.gpg",
                 "sudo apt update",
             ],
         ),
