@@ -189,7 +189,7 @@ def dotdir(dir, **kwargs):
     absdir = os.path.expanduser(f'~/{dir}')
     return Command(
         dir,
-        ['ln', '-s', source_dir, absdir],
+        ['ln', '-fs', source_dir, absdir],
         PRIORITY_DOTDIR,
         **kwargs,
     )
@@ -201,7 +201,7 @@ def dotfile(file, source_file=None, **kwargs):
     absfile = os.path.expanduser(f'~/{file}')
     return Command(
         file,
-        ['ln', '-s', source_file, absfile],
+        ['ln', '-fs', source_file, absfile],
         PRIORITY_DOTFILE,
         **kwargs,
     )
