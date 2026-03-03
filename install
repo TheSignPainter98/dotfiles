@@ -5,6 +5,7 @@ import os
 import subprocess
 import shlex
 import sqlite3
+from pathlib import Path
 
 DRY_RUN = False
 
@@ -214,10 +215,12 @@ def dotfile(file, source_file=None, **kwargs):
     if source_file is None:
         source_file = os.path.abspath(f'./home/{file}')
     absfile = os.path.expanduser(f'~/{file}')
+    parent = Path(absfile).parent
     return Command(
         file,
         ['ln', '-fs', source_file, absfile],
         PRIORITY_DOTFILE,
+        pre_install=f'mkdir -p {parent}'
         **kwargs,
     )
 
@@ -264,7 +267,13 @@ def all_tasks():
             ['sudo', 'apt', 'upgrade', '-y'],
             PRIORITY_PRE + 1,
         ),
+        Command(
+            'apt upgrade',
+            ['sudo', 'add-apt-repository', 'universe'],
+            PRIORITY_PRE + 2,
+        ),
         apt('curl'),
+        apt('fonts-firacode'),
         apt(
             'fish',
             post_install='sudo chsh -s /usr/bin/fish',
@@ -316,9 +325,12 @@ def all_tasks():
             'yuescript',
             post_install='sudo snap alias yuescript.yue yue'
         ),
-        classic_snap('rustup'),
+        classic_snap(
+            'rustup',
+            post_install='rustup toolchain install stable',
+        ),
         classic_snap('nvim'),
-        cargo('fs-find'),
+        cargo('fd-find'),
         cargo('starship'),
         cargo('cargo-nextest'),
         cargo('btm'),
@@ -333,7 +345,7 @@ def all_tasks():
             '.config/wezterm/',
             pre_install='yue home/.config/wezterm/',
         ),
-        dotfile('.config/fish/config.toml'),
+        dotfile('.config/fish/config.fish'),
         dotfile(
             '.wezterm.lua',
             source_file='home/.config/wezterm/.wezterm.lua',
