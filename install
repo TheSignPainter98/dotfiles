@@ -285,6 +285,15 @@ def all_tasks():
         apt('luarocks'),
         apt('make'),
         apt(
+            'mullvad-vpn',
+            pre_install=[
+                'sudo curl -fsSLo /usr/share/keyrings/mullvad-keyring.asc https://repository.mullvad.net/deb/mullvad-keyring.asc',
+                System('echo "deb [signed-by=/usr/share/keyrings/mullvad-keyring.asc arch=$( dpkg --print-architecture )] https://repository.mullvad.net/deb/stable stable main" | sudo tee /etc/apt/sources.list.d/mullvad.list'),
+                'sudo apt update',
+            ],
+            post_install='mullvad account login',
+        ),
+        apt(
             'libnvidia-gl-590:i386',
             pre_install=[
                 'sudo dpkg --add-architecture i386',
