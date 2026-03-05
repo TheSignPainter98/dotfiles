@@ -220,7 +220,7 @@ def dotfile(file, source_file=None, **kwargs):
         file,
         ['ln', '-fs', source_file, absfile],
         PRIORITY_DOTFILE,
-        pre_install=f'mkdir -p {parent}'
+        pre_install=f'mkdir -p {parent}',
         **kwargs,
     )
 
@@ -268,7 +268,7 @@ def all_tasks():
             PRIORITY_PRE + 1,
         ),
         Command(
-            'apt upgrade',
+            'add-apt-repository',
             ['sudo', 'add-apt-repository', 'universe'],
             PRIORITY_PRE + 2,
         ),
@@ -279,6 +279,15 @@ def all_tasks():
             post_install='sudo chsh -s /usr/bin/fish',
         ),
         apt('gcc'),
+        apt(
+            'git',
+            post_install=[
+                'gpg --full-generate-key'
+                # TODO(kcza): make a dialogue to select the right key, then
+                # gpg --armor --export <key> into the clipboard
+                # git config --global user.signingkey <key>
+            ],
+        ),
         apt('gnome-tweaks'),
         apt('golang-go'),
         apt('luajit'),
@@ -291,7 +300,7 @@ def all_tasks():
                 System('echo "deb [signed-by=/usr/share/keyrings/mullvad-keyring.asc arch=$( dpkg --print-architecture )] https://repository.mullvad.net/deb/stable stable main" | sudo tee /etc/apt/sources.list.d/mullvad.list'),
                 'sudo apt update',
             ],
-            post_install='mullvad account login',
+            # requires='curl'
         ),
         apt(
             'libnvidia-gl-590:i386',
@@ -317,18 +326,19 @@ def all_tasks():
         ),
         snap('brave'),
         snap('discord'),
-        snap(
-            'obs-studio',
-            post_install=[
-                "sudo snap connect obs-studio:kernel-module-observe",
-                "sudo snap connect obs-studio:screencast-legacy",
-                "sudo apt -y install v4l2loopback-dkms v4l2loopback-utils",
-                "echo 'options v4l2loopback devices=1 video_nr=13 card_label=\"OBS Virtual Camera\" exclusive_caps=1' | sudo tee /etc/modprobe.d/v4l2loopback.conf",
-                "echo \"v4l2loopback\" | sudo tee /etc/modules-load.d/v4l2loopback.conf",
-                "sudo modprobe -r v4l2loopback",
-                "sudo modprobe v4l2loopback devices=1 video_nr=13 card_label=\"OBS Virtual Camera\" exclusive_caps=1",
-            ],
-        ),
+        snap('gedit'),
+        # snap(
+        #     'obs-studio',
+        #     post_install=[
+        #         "sudo snap connect obs-studio:kernel-module-observe",
+        #         "sudo snap connect obs-studio:screencast-legacy",
+        #         "sudo apt -y install v4l2loopback-dkms v4l2loopback-utils",
+        #         "echo 'options v4l2loopback devices=1 video_nr=13 card_label=\"OBS Virtual Camera\" exclusive_caps=1' | sudo tee /etc/modprobe.d/v4l2loopback.conf",
+        #         "echo \"v4l2loopback\" | sudo tee /etc/modules-load.d/v4l2loopback.conf",
+        #         "sudo modprobe -r v4l2loopback",
+        #         "sudo modprobe v4l2loopback devices=1 video_nr=13 card_label=\"OBS Virtual Camera\" exclusive_caps=1",
+        #     ],
+        # ),
         snap('steam'),
         snap(
             'yuescript',
@@ -343,6 +353,7 @@ def all_tasks():
         cargo('starship'),
         cargo('cargo-nextest'),
         cargo('btm'),
+        cargo('jj-cli'),
         dotdir('.config/starship/'),
         dotfile('.config/starship.toml'),
         dotfile('.config/jj/config.toml'),
