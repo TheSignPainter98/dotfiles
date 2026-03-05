@@ -276,13 +276,13 @@ def all_tasks():
         apt('fonts-firacode'),
         apt(
             'fish',
-            post_install='sudo chsh -s /usr/bin/fish',
+            post_install='chsh -s /usr/bin/fish',
         ),
         apt('gcc'),
         apt(
             'git',
             post_install=[
-                'gpg --full-generate-key'
+                # 'gpg --full-generate-key'
                 # TODO(kcza): make a dialogue to select the right key, then
                 # gpg --armor --export <key> into the clipboard
                 # git config --global user.signingkey <key>
