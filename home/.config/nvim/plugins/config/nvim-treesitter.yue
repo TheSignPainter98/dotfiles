@@ -6,43 +6,43 @@ export config = ->
   with require 'nvim-treesitter.install'
     .prefer_git = true
 
-  import 'nvim-treesitter.configs' as :setup
+  import 'nvim-treesitter' as :setup, :install
   setup
-    ensure_installed:
-      * 'awk'
-      * 'c'
-      * 'css'
-      * 'diff'
-      * 'dot'
-      * 'git_config'
-      * 'git_rebase'
-      * 'gitattributes'
-      * 'gitcommit'
-      * 'gitignore'
-      * 'go'
-      * 'gomod'
-      * 'gosum'
-      * 'html'
-      * 'json'
-      * 'lalrpop'
-      * 'latex'
-      * 'lua'
-      * 'make'
-      * 'markdown'
-      * 'markdown_inline'
-      * 'python'
-      * 'rust'
-      * 'starlark'
-      * 'sql'
-      * 'toml'
-      * 'vim'
-      * 'yaml'
     sync_install: false
     auto_install: true
     highlight:
       enable: true
     -- context_commentstring:
     --   enable: true
+  install
+    * 'awk'
+    * 'c'
+    * 'css'
+    * 'diff'
+    * 'dot'
+    * 'git_config'
+    * 'git_rebase'
+    * 'gitattributes'
+    * 'gitcommit'
+    * 'gitignore'
+    * 'go'
+    * 'gomod'
+    * 'gosum'
+    * 'html'
+    * 'json'
+    * 'lalrpop'
+    * 'latex'
+    * 'lua'
+    * 'make'
+    * 'markdown'
+    * 'markdown_inline'
+    * 'python'
+    * 'rust'
+    * 'starlark'
+    * 'sql'
+    * 'toml'
+    * 'vim'
+    * 'yaml'
 
   import concat from table
   import jobstart from vim.fn
