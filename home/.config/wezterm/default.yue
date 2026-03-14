@@ -19,7 +19,12 @@ fira_code =
     * 'cv26'
     * 'cv27'
 
-export font_size = 18
+export font_size = switch wezterm.hostname!
+  when 'glowworm'
+    17
+  else
+    18
+
 export line_height = 1.2
 export font = wezterm.font_with_fallback
   * fira_code
