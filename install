@@ -327,6 +327,7 @@ def all_tasks():
         snap('brave'),
         snap('discord'),
         snap('gedit'),
+        snap('glab'),
         # snap(
         #     'obs-studio',
         #     post_install=[
