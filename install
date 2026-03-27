@@ -315,6 +315,7 @@ def all_tasks():
         ),
         apt('ripgrep'),
         apt('sqlite3'),
+        apt('tlp'),
         apt(
             'wezterm',
             pre_install=[
