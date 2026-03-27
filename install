@@ -328,6 +328,7 @@ def all_tasks():
         snap('discord'),
         snap('gedit'),
         snap('glab'),
+        snap('mergiraf'),
         # snap(
         #     'obs-studio',
         #     post_install=[
