@@ -313,6 +313,7 @@ def all_tasks():
             'plocate',
             post_install='sudo updatedb',
         ),
+        apt('pre-commit'),
         apt('ripgrep'),
         apt('sqlite3'),
         apt('tlp'),
