@@ -2,9 +2,10 @@
 
 import hashlib
 import os
-import subprocess
 import shlex
+import socket
 import sqlite3
+import subprocess
 from pathlib import Path
 
 DRY_RUN = False
@@ -239,7 +240,8 @@ def cleanup(command):
     )
 
 def main():
-    tasks = all_tasks()
+    host_name = socket.gethostname()
+    tasks = all_tasks(host_name)
     conn = ensure_setup('dotfiles.db', tasks)
     cursor = conn.cursor()
 
@@ -269,133 +271,140 @@ def main():
     for task in to_enact:
         task.enact(conn)
 
-def all_tasks():
-    unsorted_tasks = [
-        Command(
-            'apt update',
-            ['sudo', 'apt', 'update', '-y'],
-            PRIORITY_PRE,
-        ),
-        Command(
-            'apt upgrade',
-            ['sudo', 'apt', 'upgrade', '-y'],
-            PRIORITY_PRE + 1,
-        ),
-        Command(
-            'add-apt-repository',
-            ['sudo', 'add-apt-repository', 'universe'],
-            PRIORITY_PRE + 2,
-        ),
-        apt('curl'),
-        apt('fonts-firacode'),
-        apt(
-            'fish',
-            post_install='chsh -s /usr/bin/fish',
-        ),
-        apt('gcc'),
-        apt(
-            'git',
-            post_install=[
-                # 'gpg --full-generate-key'
-                # TODO(kcza): make a dialogue to select the right key, then
-                # gpg --armor --export <key> into the clipboard
-                # git config --global user.signingkey <key>
-            ],
-        ),
-        apt('gnome-tweaks'),
-        apt('golang-go'),
-        apt('luajit'),
-        apt('luarocks'),
-        apt('make'),
-        apt(
-            'mullvad-vpn',
-            pre_install=[
-                'sudo curl -fsSLo /usr/share/keyrings/mullvad-keyring.asc https://repository.mullvad.net/deb/mullvad-keyring.asc',
-                System('echo "deb [signed-by=/usr/share/keyrings/mullvad-keyring.asc arch=$( dpkg --print-architecture )] https://repository.mullvad.net/deb/stable stable main" | sudo tee /etc/apt/sources.list.d/mullvad.list'),
-                'sudo apt update',
-            ],
-            # requires='curl'
-        ),
-        apt(
-            'libnvidia-gl-590:i386',
-            pre_install=[
-                'sudo dpkg --add-architecture i386',
-                'sudo apt update',
-            ],
-        ),
-        apt(
-            'plocate',
-            post_install='sudo updatedb',
-        ),
-        apt('pre-commit'),
-        apt('ripgrep'),
-        apt('sqlite3'),
-        apt('tlp'),
-        apt(
-            'wezterm',
-            pre_install=[
-                System("curl -fsSL https://apt.fury.io/wez/gpg.key | sudo gpg --yes --dearmor -o /usr/share/keyrings/wezterm-fury.gpg"),
-                System("echo 'deb [signed-by=/usr/share/keyrings/wezterm-fury.gpg] https://apt.fury.io/wez/ * *' | sudo tee /etc/apt/sources.list.d/wezterm.list"),
-                "sudo chmod 644 /usr/share/keyrings/wezterm-fury.gpg",
-                "sudo apt update",
-            ],
-        ),
-        snap('brave'),
-        snap('discord'),
-        snap('gedit'),
-        snap('glab'),
-        snap('matterhorn'),
-        snap('mergiraf'),
-        # snap(
-        #     'obs-studio',
-        #     post_install=[
-        #         "sudo snap connect obs-studio:kernel-module-observe",
-        #         "sudo snap connect obs-studio:screencast-legacy",
-        #         "sudo apt -y install v4l2loopback-dkms v4l2loopback-utils",
-        #         "echo 'options v4l2loopback devices=1 video_nr=13 card_label=\"OBS Virtual Camera\" exclusive_caps=1' | sudo tee /etc/modprobe.d/v4l2loopback.conf",
-        #         "echo \"v4l2loopback\" | sudo tee /etc/modules-load.d/v4l2loopback.conf",
-        #         "sudo modprobe -r v4l2loopback",
-        #         "sudo modprobe v4l2loopback devices=1 video_nr=13 card_label=\"OBS Virtual Camera\" exclusive_caps=1",
-        #     ],
-        # ),
-        snap('steam'),
-        snap(
-            'yuescript',
-            post_install='sudo snap alias yuescript.yue yue'
-        ),
-        classic_snap(
-            'rustup',
-            post_install='rustup toolchain install stable',
-        ),
-        classic_snap('nvim'),
-        cargo('bottom'),
-        cargo('cargo-nextest'),
-        cargo('fd-find'),
-        cargo('forgejo-cli'),
-        cargo('jj-cli'),
-        cargo('starship'),
-        dotdir('.config/starship/'),
-        dotfile('.config/starship.toml'),
-        dotfile('.config/jj/config.toml'),
-        dotdir(
-            '.config/nvim/',
-            pre_install='yue home/.config/nvim/',
-        ),
-        dotdir(
-            '.config/wezterm/',
-            pre_install='yue home/.config/wezterm/',
-        ),
-        dotfile('.config/fish/config.fish'),
-        dotfile(
-            '.wezterm.lua',
-            source_file='home/.config/wezterm/.wezterm.lua',
-        ),
-        # font()
-        # TODO(kcza): mpv (install sync-city as a pre-command)
-        # TODO(kcza): figure out how to install the font, `fc-cache -fv`?
-        # TODO(kcza): encrypt the fonts with gpg to avoid copyright issues.
-        cleanup('sudo apt autoremove'),
-    ]
+def all_tasks(host_name: str):
+    unsorted_tasks = []
+    def declare(cmd):
+        unsorted_tasks.append(cmd)
+
+    declare(Command(
+        'apt update',
+        ['sudo', 'apt', 'update', '-y'],
+        PRIORITY_PRE,
+    ))
+    declare(Command(
+        'apt upgrade',
+        ['sudo', 'apt', 'upgrade', '-y'],
+        PRIORITY_PRE + 1,
+    ))
+    declare(Command(
+        'add-apt-repository',
+        ['sudo', 'add-apt-repository', '-y', 'universe'],
+        PRIORITY_PRE + 2,
+    ))
+    declare(apt('curl'))
+    declare(apt('fonts-firacode'))
+
+    fish_post_install = None
+    if host_name not in ['dirk']:
+        fish_post_install = 'chsh -s /usr/bin/fish'
+    declare(apt(
+        'fish',
+        post_install=fish_post_install,
+    ))
+
+    declare(apt('gcc'))
+    declare(apt(
+        'git',
+        post_install=[
+            # 'gpg --full-generate-key'
+            # TODO(kcza): make a dialogue to select the right key, then
+            # gpg --armor --export <key> into the clipboard
+            # git config --global user.signingkey <key>
+        ],
+    ))
+    declare(apt('gnome-tweaks'))
+    declare(apt('golang-go'))
+    declare(apt('luajit'))
+    declare(apt('luarocks'))
+    declare(apt('make'))
+    declare(apt(
+        'mullvad-vpn',
+        pre_install=[
+            'sudo curl -fsSLo /usr/share/keyrings/mullvad-keyring.asc https://repository.mullvad.net/deb/mullvad-keyring.asc',
+            System('echo "deb [signed-by=/usr/share/keyrings/mullvad-keyring.asc arch=$( dpkg --print-architecture )] https://repository.mullvad.net/deb/stable stable main" | sudo tee /etc/apt/sources.list.d/mullvad.list'),
+            'sudo apt update',
+        ],
+        # requires='curl'
+    ))
+    declare(apt(
+        'libnvidia-gl-590:i386',
+        pre_install=[
+            'sudo dpkg --add-architecture i386',
+            'sudo apt update',
+        ],
+    ))
+    declare(apt(
+        'plocate',
+        post_install='sudo updatedb',
+    ))
+    declare(apt('pre-commit'))
+    declare(apt('ripgrep'))
+    declare(apt('sqlite3'))
+    declare(apt('tlp'))
+    declare(apt(
+        'wezterm',
+        pre_install=[
+            System("curl -fsSL https://apt.fury.io/wez/gpg.key | sudo gpg --yes --dearmor -o /usr/share/keyrings/wezterm-fury.gpg"),
+            System("echo 'deb [signed-by=/usr/share/keyrings/wezterm-fury.gpg] https://apt.fury.io/wez/ * *' | sudo tee /etc/apt/sources.list.d/wezterm.list"),
+            "sudo chmod 644 /usr/share/keyrings/wezterm-fury.gpg",
+            "sudo apt update",
+        ],
+    ))
+    declare(snap('brave'))
+    declare(snap('discord'))
+    declare(snap('gedit'))
+    declare(snap('glab'))
+    declare(snap('matterhorn'))
+    declare(snap('mergiraf'))
+    # declare(snap(
+    #     'obs-studio',
+    #     post_install=[
+    #         "sudo snap connect obs-studio:kernel-module-observe",
+    #         "sudo snap connect obs-studio:screencast-legacy",
+    #         "sudo apt -y install v4l2loopback-dkms v4l2loopback-utils",
+    #         "echo 'options v4l2loopback devices=1 video_nr=13 card_label=\"OBS Virtual Camera\" exclusive_caps=1' | sudo tee /etc/modprobe.d/v4l2loopback.conf",
+    #         "echo \"v4l2loopback\" | sudo tee /etc/modules-load.d/v4l2loopback.conf",
+    #         "sudo modprobe -r v4l2loopback",
+    #         "sudo modprobe v4l2loopback devices=1 video_nr=13 card_label=\"OBS Virtual Camera\" exclusive_caps=1",
+    #     ],
+    # ))
+    declare(snap('steam'))
+    declare(snap(
+        'yuescript',
+        post_install='sudo snap alias yuescript.yue yue'
+    ))
+    declare(classic_snap(
+        'rustup',
+        post_install='rustup toolchain install stable',
+    ))
+    declare(classic_snap('nvim'))
+    declare(cargo('bottom'))
+    declare(cargo('cargo-nextest'))
+    declare(cargo('fd-find'))
+    declare(cargo('forgejo-cli'))
+    declare(cargo('jj-cli'))
+    declare(cargo('starship'))
+    declare(dotdir('.config/starship/'))
+    declare(dotfile('.config/starship.toml'))
+    declare(dotfile('.config/jj/config.toml'))
+    declare(dotdir(
+        '.config/nvim/',
+        pre_install='yue home/.config/nvim/',
+    ))
+    declare(dotdir(
+        '.config/wezterm/',
+        pre_install='yue home/.config/wezterm/',
+    ))
+    declare(dotfile('.config/fish/config.fish'))
+    declare(dotfile(
+        '.wezterm.lua',
+        source_file='home/.config/wezterm/.wezterm.lua',
+    ))
+    # declare(font())
+    # TODO(kcza): mpv (install sync-city as a pre-command)
+    # TODO(kcza): figure out how to install the font, `fc-cache -fv`?
+    # TODO(kcza): encrypt the fonts with gpg to avoid copyright issues.
+    declare(cleanup('sudo apt autoremove'))
 
     sorted_tasks = unsorted_tasks # TODO(kcza): DFS down the dependencies.
     return sorted_tasks
