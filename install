@@ -202,6 +202,7 @@ def cargo(name, **kwargs):
 
 PRIORITY_DOTDIR = 4 * 8
 def dotdir(dir, **kwargs):
+    dir = dir.removesuffix('/')
     source_dir = os.path.abspath(f'./home/{dir}')
     absdir = os.path.expanduser(f'~/{dir}')
     return Command(
@@ -227,16 +228,12 @@ def dotfile(file, source_file=None, **kwargs):
 
 CLEANUP_PRIOIRTY = 10000 * 8
 def cleanup(command):
-    name = None
-    if type(command) is list:
-        name = ' '.join(command)
-    else:
-        name = str(command)
-
+    name = ' '.join(command)
     return Command(
         name,
         command,
         CLEANUP_PRIOIRTY,
+        rollback_command=['echo', 'skipping', 'cleanup', 'rollback'],
     )
 
 def main():
@@ -373,6 +370,7 @@ def all_tasks(host_name: str):
         'yuescript',
         post_install='sudo snap alias yuescript.yue yue'
     ))
+    declare(classic_snap('gh'))
     declare(classic_snap(
         'rustup',
         post_install='rustup toolchain install stable',
@@ -404,7 +402,7 @@ def all_tasks(host_name: str):
     # TODO(kcza): mpv (install sync-city as a pre-command)
     # TODO(kcza): figure out how to install the font, `fc-cache -fv`?
     # TODO(kcza): encrypt the fonts with gpg to avoid copyright issues.
-    declare(cleanup('sudo apt autoremove'))
+    declare(cleanup(['sudo', 'apt', 'autoremove']))
 
     sorted_tasks = unsorted_tasks # TODO(kcza): DFS down the dependencies.
     return sorted_tasks

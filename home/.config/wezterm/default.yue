@@ -20,7 +20,7 @@ fira_code =
     * 'cv27'
 
 export font_size = switch wezterm.hostname!
-  when 'glowworm'
+  when 'glowworm', 'dirk'
     14
   else
     18
