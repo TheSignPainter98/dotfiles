@@ -10,6 +10,7 @@ with vim.opt
   .linebreak = true
   .shiftwidth = 4
   .shiftround = true
+  .expandtab = true
   .tabstop = 4
   .scrolloff = 7
 
