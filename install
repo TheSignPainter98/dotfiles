@@ -338,6 +338,7 @@ def all_tasks(host_name: str):
     declare(apt('ripgrep'))
     declare(apt('sqlite3'))
     declare(apt('tlp'))
+    declare(apt('tree'))
     declare(apt(
         'wezterm',
         pre_install=[
