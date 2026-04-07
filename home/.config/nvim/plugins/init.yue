@@ -45,7 +45,7 @@ plugins =
   * require 'plugins.config.formatter'
   * require 'plugins.config.nvim-autopairs'
   * require 'plugins.config.nvim-surround'
-  * require 'plugins.config.nvim-ts-context-commentstring'
+  -- * require 'plugins.config.nvim-ts-context-commentstring'
   * require 'plugins.config.treesj'
 
   -- Tree-sitter
