@@ -269,6 +269,8 @@ def main():
         task.enact(conn)
 
 def all_tasks(host_name: str):
+    work_device = True # TODO(kcza): add a survey at the beginning to ask about high-DPIness + work-PCness
+
     unsorted_tasks = []
     def declare(cmd):
         unsorted_tasks.append(cmd)
@@ -352,7 +354,6 @@ def all_tasks(host_name: str):
     declare(snap('discord'))
     declare(snap('gedit'))
     declare(snap('glab'))
-    declare(snap('matterhorn'))
     declare(snap('mergiraf'))
     # declare(snap(
     #     'obs-studio',
@@ -404,6 +405,12 @@ def all_tasks(host_name: str):
     # TODO(kcza): figure out how to install the font, `fc-cache -fv`?
     # TODO(kcza): encrypt the fonts with gpg to avoid copyright issues.
     declare(cleanup(['sudo', 'apt', 'autoremove']))
+
+    if work_device:
+        declare(snap('matterhorn'))
+        # TODO(kcza): add config.ini and theme.ini here
+        declare(dotfile('snap/matterhorn/current/.config/matterhorn/config.ini'))
+        declare(dotfile('snap/matterhorn/current/.config/matterhorn/theme.ini'))
 
     sorted_tasks = unsorted_tasks # TODO(kcza): DFS down the dependencies.
     return sorted_tasks
