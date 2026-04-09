@@ -306,6 +306,15 @@ class MachineInfo:
         if 'work_device' not in machine_info:
             value = self.prompt('is this a work device? [y/n]', transform=transform_yn_bool)
             self.record('work_device', cursor, machine_info, value)
+        if 'bells_and_whistles' not in machine_info:
+            value = self.prompt('add the bells and whistles? [y/n]', transform=transform_yn_bool)
+            self.record('bells_and_whistles', cursor, machine_info, value)
+        if 'portable' not in machine_info:
+            value = self.prompt('is this device portable? [y/n]', transform=transform_yn_bool)
+            self.record('portable', cursor, machine_info, value)
+        if 'gaming' not in machine_info:
+            value = self.prompt('is this a gaming device? [y/n]', transform=transform_yn_bool)
+            self.record('gaming', cursor, machine_info, value)
 
         cursor.execute('COMMIT')
 
@@ -360,7 +369,9 @@ def all_tasks(machine_info: MachineInfo):
     ))
     declare(apt('curl'))
     declare(apt('fonts-firacode'))
-    declare(apt('eza'))
+
+    if machine_info.bells_and_whistles:
+        declare(apt('eza'))
 
     fish_post_install = None
     if machine_info.host_name not in ['dirk']:
@@ -407,7 +418,8 @@ def all_tasks(machine_info: MachineInfo):
     ))
     declare(apt('ripgrep'))
     declare(apt('sqlite3'))
-    declare(apt('tlp'))
+    if machine_info.portable:
+        declare(apt('tlp'))
     declare(apt('tree'))
     declare(apt(
         'wezterm',
@@ -421,7 +433,6 @@ def all_tasks(machine_info: MachineInfo):
     declare(snap('brave'))
     declare(snap('discord'))
     declare(snap('gedit'))
-    declare(snap('glab'))
     declare(snap('mergiraf'))
     # declare(snap(
     #     'obs-studio',
@@ -435,7 +446,8 @@ def all_tasks(machine_info: MachineInfo):
     #         "sudo modprobe v4l2loopback devices=1 video_nr=13 card_label=\"OBS Virtual Camera\" exclusive_caps=1",
     #     ],
     # ))
-    declare(snap('steam'))
+    if machine_info.gaming:
+        declare(snap('steam'))
     declare(snap(
         'yuescript',
         post_install='sudo snap alias yuescript.yue yue'
