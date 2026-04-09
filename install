@@ -301,20 +301,38 @@ class MachineInfo:
 
         cursor.execute('BEGIN')
 
-        if 'host_name' not in machine_info:
-            self.record('host_name', cursor, machine_info, socket.gethostname())
-        if 'work_device' not in machine_info:
-            value = self.prompt('is this a work device? [y/n]', transform=transform_yn_bool)
-            self.record('work_device', cursor, machine_info, value)
-        if 'bells_and_whistles' not in machine_info:
-            value = self.prompt('add the bells and whistles? [y/n]', transform=transform_yn_bool)
-            self.record('bells_and_whistles', cursor, machine_info, value)
-        if 'portable' not in machine_info:
-            value = self.prompt('is this device portable? [y/n]', transform=transform_yn_bool)
-            self.record('portable', cursor, machine_info, value)
-        if 'gaming' not in machine_info:
-            value = self.prompt('is this a gaming device? [y/n]', transform=transform_yn_bool)
-            self.record('gaming', cursor, machine_info, value)
+        expected_fields = [{
+            'field': 'host_name',
+            'value': lambda: socket.gethostname(),
+        }, {
+            'field': 'work_device',
+            'value': lambda: self.prompt('Is this a work device? [y/n]', transform=transform_yn_bool),
+        }, {
+            'field': 'bells_and_whistles',
+            'value': lambda: self.prompt('Are the bells and whistles required? [y/n]', transform=transform_yn_bool),
+        }, {
+            'field': 'portable',
+            'value': lambda: self.prompt('Is this device portable? [y/n]', transform=transform_yn_bool),
+        }, {
+            'field': 'gaming',
+            'value': lambda: self.prompt('Is this a gaming device? [y/n]', transform=transform_yn_bool),
+        }]
+        missing = list(filter(lambda spec: spec['field'] not in machine_info, expected_fields))
+
+        if len(missing) != 0:
+            print(f'Please answer the following {len(missing)} questions.')
+        for spec in missing:
+            key = spec['field']
+            value = spec['value']()
+            cursor.execute(
+                '''
+                    INSERT OR REPLACE
+                    INTO machine_info (key, value)
+                    VALUES (?, ?)
+                ''',
+                (key, value),
+            )
+            machine_info[key] = value
 
         cursor.execute('COMMIT')
 
@@ -327,17 +345,6 @@ class MachineInfo:
         if transform is not None:
             value = transform(value)
         return value
-
-    def record(self, key, cursor, machine_info, value):
-        cursor.execute(
-            '''
-                INSERT OR REPLACE
-                INTO machine_info (key, value)
-                VALUES (?, ?)
-            ''',
-            (key, value),
-        )
-        machine_info[key] = value
 
 def transform_yn_bool(yn: str) -> bool:
     yn = yn.lower()
@@ -547,4 +554,8 @@ def populate_tasks(conn, tasks):
         raise ex
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print('\nKeyboard interrupt')
+        exit(1)
