@@ -163,6 +163,10 @@ if status is-interactive
 		&& sudo snap refresh
 	end
 
+    function ls --wraps 'eza' --description 'List directory contents'
+        eza $argv
+    end
+
 	export EDITOR=nvim
 	export LESS=IR
 	export LESS_TERMCAP_mb="$(printf "\e[1;31m")"

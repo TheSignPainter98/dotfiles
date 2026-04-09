@@ -360,6 +360,7 @@ def all_tasks(machine_info: MachineInfo):
     ))
     declare(apt('curl'))
     declare(apt('fonts-firacode'))
+    declare(apt('eza'))
 
     fish_post_install = None
     if machine_info.host_name not in ['dirk']:
