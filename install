@@ -404,7 +404,6 @@ def all_tasks(machine_info: MachineInfo):
         'plocate',
         post_install='sudo updatedb',
     ))
-    declare(apt('pre-commit'))
     declare(apt('ripgrep'))
     declare(apt('sqlite3'))
     declare(apt('tlp'))
@@ -451,6 +450,7 @@ def all_tasks(machine_info: MachineInfo):
     declare(cargo('fd-find'))
     declare(cargo('forgejo-cli'))
     declare(cargo('jj-cli'))
+    declare(cargo('prek'))
     declare(cargo('starship'))
     declare(dotdir('.config/starship/'))
     declare(dotfile('.config/starship.toml'))
