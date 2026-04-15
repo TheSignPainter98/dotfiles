@@ -509,6 +509,7 @@ def all_tasks(machine_info: MachineInfo):
     declare(cleanup(['sudo', 'apt', 'autoremove']))
 
     if machine_info.work_device:
+        declare(classic_snap('code'))
         declare(snap('matterhorn'))
         # TODO(kcza): add config.ini and theme.ini here
         declare(dotfile('snap/matterhorn/current/.config/matterhorn/config.ini', copy=True))
