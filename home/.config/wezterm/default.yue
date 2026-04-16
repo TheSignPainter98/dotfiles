@@ -98,6 +98,8 @@ export keys =
         if curr_opacity_idx < 1
           curr_opacity_idx = 1
         .window_background_opacity = opacities[curr_opacity_idx]
+  * key: 'F11'
+    action: wezterm.action.ToggleFullScreen
   -- * key: "~"
   --   mods: 'CTRL|SHIFT'
   --   action: wezterm.action_callback (win, pane) ->
