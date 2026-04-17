@@ -325,10 +325,15 @@ class MachineInfo:
         }, {
             'field': 'gaming',
             'value': lambda: self.prompt('Is this a gaming device? [y/n]', transform=transform_yn_bool),
+        }, {
+            'field': 'creative_2d',
+            'value': lambda: self.prompt('Install 2d creative software? [y/n]', transform=transform_yn_bool),
         }]
         missing = list(filter(lambda spec: spec['field'] not in machine_info, expected_fields))
 
-        if len(missing) != 0:
+        if len(missing) == 1:
+            print(f'Please answer the following question.')
+        if len(missing) > 1:
             print(f'Please answer the following {len(missing)} questions.')
         for spec in missing:
             key = spec['field']
@@ -454,6 +459,8 @@ def all_tasks(machine_info: MachineInfo):
     declare(snap('brave'))
     declare(snap('discord'))
     declare(snap('gedit'))
+    if machine_info.creative_2d:
+        declare(snap('krita'))
     declare(snap('mergiraf'))
     # declare(snap(
     #     'obs-studio',
