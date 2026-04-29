@@ -1,0 +1,26 @@
+export name = 'johnseth97/codex.nvim'
+export dependencies = 'folke/snacks.nvim'
+
+export cmd =
+  * 'Codex'
+  * 'CodexToggle'
+
+export keys =
+  * [1]: '<leader>cc'
+    [2]: '<cmd>CodexToggle<cr>'
+    mode:
+      * 'n'
+      * 't'
+    desc: 'Toggle codex window'
+
+export opts =
+  keymaps:
+    toggle: nil
+    quit: '<C-q>'
+  border: 'rounded'
+  width: 0.8
+  height: 0.8
+  model: nil
+  autoinstall: false
+  panel: true
+  use_buffer: false

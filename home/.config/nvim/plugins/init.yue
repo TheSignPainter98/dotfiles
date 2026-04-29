@@ -73,6 +73,10 @@ plugins =
   -- Text-writing
   * require 'plugins.config.vim-litecorrect'
 
+  -- Slop-support
+  * require 'plugins.config.codex'
+  * require 'plugins.config.snacks'
+
   -- Dependencies
   * require 'plugins.config.mason'
   * require 'plugins.config.mason-lspconfig'
