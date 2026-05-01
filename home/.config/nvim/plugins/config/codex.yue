@@ -18,8 +18,8 @@ export opts =
     toggle: nil
     quit: '<C-q>'
   border: 'rounded'
-  width: 0.8
-  height: 0.8
+  width: 0.4
+  height: 0.4
   model: nil
   autoinstall: false
   panel: true
