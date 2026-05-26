@@ -328,6 +328,9 @@ class MachineInfo:
         }, {
             'field': 'creative_2d',
             'value': lambda: self.prompt('Install 2d creative software? [y/n]', transform=transform_yn_bool),
+        }, {
+            'field': 'ai',
+            'value': lambda: self.prompt('Is this an agentic-coding device? [y/n]', transform=transform_yn_bool),
         }]
         missing = list(filter(lambda spec: spec['field'] not in machine_info, expected_fields))
 
@@ -486,6 +489,8 @@ def all_tasks(machine_info: MachineInfo):
         post_install='rustup toolchain install stable',
     ))
     declare(classic_snap('nvim'))
+    if machine_info.ai:
+        declare(classic_snap('opencode'))
     declare(cargo('bottom'))
     declare(cargo('cargo-nextest'))
     declare(cargo('fd-find'))
