@@ -510,10 +510,6 @@ def all_tasks(machine_info: MachineInfo):
         pre_install='yue home/.config/wezterm/',
     ))
     declare(dotfile('.config/fish/config.fish'))
-    declare(dotfile(
-        '.wezterm.lua',
-        source_file='home/.config/wezterm/.wezterm.lua',
-    ))
     # declare(font())
     # TODO(kcza): mpv (install sync-city as a pre-command)
     # TODO(kcza): figure out how to install the font, `fc-cache -fv`?
