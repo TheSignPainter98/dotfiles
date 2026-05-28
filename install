@@ -432,6 +432,15 @@ def all_tasks(machine_info: MachineInfo):
             System('echo "deb [signed-by=/usr/share/keyrings/mullvad-keyring.asc arch=$( dpkg --print-architecture )] https://repository.mullvad.net/deb/stable stable main" | sudo tee /etc/apt/sources.list.d/mullvad.list'),
             'sudo apt update',
         ],
+        post_install=[
+            # Based on this thread
+            # https://discuss.linuxcontainers.org/t/help-help-help-cgroup2-related-issue-on-ubuntu-jammy-with-mullvad-and-privateinternetaccess-vpn/14705/18
+            'sudo mkdir -p /opt/net-cls-v1',
+            'sudo mount -t cgroup -o net_cls net_cls /opt/net-cls-v1',
+            'sudo chown -R root:root /opt/net-cls-v1',
+            'sudo patch /lib/systemd/system/mullvad-daemon.service patches/mullvad-daemon.service.patch',
+            'sudo systemctl restart mullvad-daemon',
+        ],
         # requires='curl'
     ))
     declare(apt(
