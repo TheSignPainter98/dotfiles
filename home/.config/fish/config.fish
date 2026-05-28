@@ -7,6 +7,8 @@ fish_add_path ~/.npm-global/bin
 fish_add_path /usr/lib/ccache
 fish_add_path /snap/rustup/current/bin
 
+export OPENSPEC_TELEMETRY=0
+
 if status is-interactive
 	set -g fish_key_bindings fish_vi_key_bindings
 	fish_vi_key_bindings insert
