@@ -1,0 +1,12 @@
+export name = 'nickjvandyke/opencode.nvim'
+export dependencies = 'folke/snacks.nvim'
+
+export keys =
+  * {
+      '<leader>cv'
+      -> (require 'opencode').toggle!
+      mode:
+        * 'n'
+        * 't'
+      desc: 'Toggle opencode window'
+    }

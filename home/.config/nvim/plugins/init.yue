@@ -74,7 +74,7 @@ plugins =
   * require 'plugins.config.vim-litecorrect'
 
   -- Slop-support
-  * require 'plugins.config.codex'
+  * require 'plugins.config.opencode'
   * require 'plugins.config.snacks'
 
   -- Dependencies
