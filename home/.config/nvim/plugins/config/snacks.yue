@@ -3,6 +3,21 @@ export name = 'folke/snacks.nvim'
 export priority = 1000
 export lazy = false
 
+export opts =
+  input: {} -- Enhances `ask()`
+  picker: -- Enhances `select()`
+    actions:
+      opencode_send: (...) ->
+        (require 'opencode').snacks_picker_send(...)
+      win:
+        input:
+          keys:
+            ['<a-a>']:
+              [1]: 'opencode_send'
+              mode:
+                * 'n'
+                * 'l'
+
 -- export opts =
 --   bigfile:
 --     enabled: true

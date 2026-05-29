@@ -10,3 +10,6 @@ export keys =
         * 't'
       desc: 'Toggle opencode window'
     }
+
+export config = ->
+  vim.o.autoread = true

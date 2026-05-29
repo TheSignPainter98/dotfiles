@@ -1,0 +1,18 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "lsp": true,
+  "provider": {
+    "local": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Local inference",
+      "options": {
+        "baseURL": "http://localhost:8326/v1"
+      },
+      "models": {
+        "qwen-vl-2.5": {
+          "name": "Qwen-VL Local"
+        }
+      }
+    }
+  }
+}
