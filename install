@@ -8,12 +8,22 @@ import socket
 import sqlite3
 import subprocess
 from pathlib import Path
+import argparse
 
 DRY_RUN = False
 
-VERSION = 4
+def parse_args():
+    parser = argparse.ArgumentParser(description='Install my default software')
+    parser.add_argument('-n', '--dry-run', action='store_true', help='show commands without executing them')
+    parser.add_argument('--version', action='version', version=f'%(prog)s v{MAJOR_VERSION}.{MINOR_VERSION}.{PATCH_VERSION}')
+    return parser.parse_args()
+
+MAJOR_VERSION = 1
+MINOR_VERSION = 0
+PATCH_VERSION = 0
+DB_VERSION = MAJOR_VERSION * 100 + MINOR_VERSION
 SCHEMA = f'''
-    PRAGMA user_version = {VERSION};
+    PRAGMA user_version = {DB_VERSION};
     PRAGMA writable_schema = 0;
 
     CREATE TABLE machine_info (
@@ -141,6 +151,8 @@ class Command:
         subprocess.run(command).check_returncode()
 
     def record_status(self, conn, status):
+        if DRY_RUN:
+            return
         statuses = {
             'not-started': 0,
             'in-progress': 1,
@@ -258,6 +270,9 @@ def cleanup(command):
     )
 
 def main():
+    global DRY_RUN
+    DRY_RUN = parse_args().dry_run
+
     conn = ensure_setup('dotfiles.db')
 
     machine_info = MachineInfo(conn)
@@ -500,6 +515,7 @@ def all_tasks(machine_info: MachineInfo):
     declare(classic_snap('nvim'))
     if machine_info.ai:
         declare(classic_snap('opencode'))
+        declare(dotfile('.config/opencode/opencode.jsonc'))
     declare(cargo('bottom'))
     declare(cargo('cargo-nextest'))
     declare(cargo('fd-find'))
@@ -560,6 +576,9 @@ class System:
         self.command = command
 
     def run(self):
+        print(f'$ {self.command}')
+        if DRY_RUN:
+            return
         subprocess.run(self.command, shell=True).check_returncode()
 
     def __hash__(self):
@@ -579,7 +598,7 @@ def ensure_setup(db_path):
         user_version = cursor.fetchone()[0]
         if user_version == 0:
             cursor.executescript(SCHEMA)
-        elif user_version != VERSION:
+        elif user_version != DB_VERSION:
             raise Exception(f'db at {db_path} incompatible, delete then retry')
 
         cursor.execute('COMMIT')
