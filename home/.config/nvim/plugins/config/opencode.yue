@@ -2,14 +2,24 @@ export name = 'nickjvandyke/opencode.nvim'
 export dependencies = 'folke/snacks.nvim'
 
 export keys =
-  * {
-      '<leader>cv'
-      -> (require 'opencode').toggle!
-      mode:
-        * 'n'
-        * 't'
-      desc: 'Toggle opencode window'
-    }
+  * [1]: '<leader>cv'
+    [2]: -> (require 'opencode').toggle!
+    desc: 'Toggle opencode window'
+    mode:
+      * 'n'
+      * 't'
+  * [1]: '<leader>ca'
+    [2]: -> (require 'opencode').ask '@this ', submit: true
+    desc: 'Ask opencode...'
+    mode:
+      * 'n'
+      * 'x'
+  * [1]: '<leader>cx'
+    [2]: -> (require 'opencode').select!
+    desc: 'Select opencode...'
+    mode:
+      * 'n'
+      * 'x'
 
 export config = ->
   vim.o.autoread = true
