@@ -6,6 +6,7 @@ with {}
     switch profile
       when 'messenger'
         .font = wezterm.font_with_fallback
+          * family: 'Drafting Mono'
           * family: 'Drafting* Mono'
           * family: 'Noto Color Emoji'
         .font_rules = nil

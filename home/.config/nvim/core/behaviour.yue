@@ -13,6 +13,7 @@ with vim.opt
   .expandtab = true
   .tabstop = 4
   .scrolloff = 7
+  .mousescroll = 'ver:1,hor:2'
 
   -- File IO
   .autoread = true

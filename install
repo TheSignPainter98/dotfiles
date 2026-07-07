@@ -458,13 +458,13 @@ def all_tasks(machine_info: MachineInfo):
         ],
         # requires='curl'
     ))
-    declare(apt(
-        'libnvidia-gl-590:i386',
-        pre_install=[
-            'sudo dpkg --add-architecture i386',
-            'sudo apt update',
-        ],
-    ))
+    # declare(apt(
+    #     'libnvidia-gl-590:i386',
+    #     pre_install=[
+    #         'sudo dpkg --add-architecture i386',
+    #         'sudo apt update',
+    #     ],
+    # ))
     declare(apt(
         'plocate',
         post_install='sudo updatedb',
@@ -519,8 +519,8 @@ def all_tasks(machine_info: MachineInfo):
     declare(cargo('bottom'))
     declare(cargo('cargo-nextest'))
     declare(cargo('fd-find'))
-    declare(cargo('forgejo-cli'))
-    declare(cargo('jj-cli'))
+    # declare(cargo('forgejo-cli'))
+    # declare(cargo('jj-cli'))
     declare(cargo('prek'))
     declare(cargo('starship'))
     declare(dotdir('.config/starship/'))

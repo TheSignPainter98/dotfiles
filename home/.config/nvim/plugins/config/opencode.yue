@@ -1,6 +1,11 @@
 export name = 'nickjvandyke/opencode.nvim'
 export dependencies = 'folke/snacks.nvim'
 
+{
+  nvim_create_autocmd: autocmd,
+  nvim_create_augroup: autogroup,
+} = vim.api
+
 export keys =
   * [1]: '<leader>cv'
     [2]: -> (require 'opencode').toggle!
@@ -23,3 +28,13 @@ export keys =
 
 export config = ->
   vim.o.autoread = true
+
+  group = autogroup 'opencode_numbering', clear: true
+  for event in *{ 'TermOpen', 'TermLeave' }
+    autocmd event,
+      :group
+      pattern: '*opencode*'
+      callback: ->
+        with vim.opt_local
+          .number = false
+          .relativenumber = false
