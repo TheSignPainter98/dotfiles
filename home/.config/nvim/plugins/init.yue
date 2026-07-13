@@ -69,6 +69,7 @@ plugins =
   * require 'plugins.config.crates' -- Rust
   * require 'plugins.config.crafttweaker-vim-highlighting'
   * require 'plugins.config.vim-rhai'
+  * require 'plugins.config.tlaplus-nvim-plugin'
 
   -- Text-writing
   * require 'plugins.config.vim-litecorrect'
