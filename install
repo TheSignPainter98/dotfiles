@@ -514,8 +514,11 @@ def all_tasks(machine_info: MachineInfo):
     ))
     declare(classic_snap('nvim'))
     if machine_info.ai:
-        declare(classic_snap('opencode'))
-        declare(dotfile('.config/opencode/opencode.jsonc'))
+        # Friendship ended with opencode
+        # declare(classic_snap('opencode'))
+        # declare(dotfile('.config/opencode/opencode.jsonc'))
+        # Now pi is my best friend. (Well not really)
+        declare(dotdir('.pi/agent/'))
     declare(cargo('bottom'))
     declare(cargo('cargo-nextest'))
     declare(cargo('fd-find'))
