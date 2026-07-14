@@ -1,0 +1,15 @@
+{
+  "lastChangelogVersion": "0.80.3",
+  "theme": "catpuccin-mocha",
+  "enableInstallTelemetry": false,
+  "compaction": {
+    "enabled": true
+  },
+  "defaultProvider": "openrouter",
+  "defaultModel": "z-ai/glm-5.2",
+  "defaultThinkingLevel": "high",
+  "packages": [
+    "git:github.com/ghoseb/pi-askuserquestion",
+    "git:github.com/DietrichGebert/ponytail"
+  ]
+}
