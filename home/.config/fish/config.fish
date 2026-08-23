@@ -171,19 +171,19 @@ if status is-interactive
     end
 
     function m33 --wraps 'ssh' --description 'Log into M.33'
-        ssh kcza@m33.local $argv
+        ssh kcza@m33.lan $argv
     end
 
     function m33.forward --description 'Set up port-forwarding for M.33'
         set dashboard_port 11000
         set remote_model_port 11434
         set local_model_port 11001
-        ssh -f -N -L $dashboard_port:localhost:$dashboard_port kcza@m33.local
-        ssh -f -N -L $local_model_port:localhost:$remote_model_port kcza@m33.local
+        ssh -f -N -L $dashboard_port:localhost:$dashboard_port kcza@m33.lan
+        ssh -f -N -L $local_model_port:localhost:$remote_model_port kcza@m33.lan
     end
 
     function m33.mps --description "List M.33's running models"
-        set ps (ssh kcza@m33.local ollama ps | tee /dev/stderr)
+        set ps (ssh kcza@m33.lan ollama ps | tee /dev/stderr)
         if echo $ps | grep 'CPU' >/dev/null
             echo '+-----------------------------------------+'
             echo '| WARNING: a model is running on the CPU! |'
@@ -192,23 +192,35 @@ if status is-interactive
     end
 
     function m33.models --description "List M.33's known models"
-        ssh kcza@m33.local ollama list
+        ssh kcza@m33.lan ollama list
     end
 
     function m33.restart-ollama --description 'Reload the ollama snap on M.33'
-        ssh kcza@m33.local sudo snap restart ollama
+        ssh kcza@m33.lan sudo snap restart ollama
     end
 
     function m33.poweroff --description 'Shut down M.33 immediately'
-        ssh kcza@m33.local sudo systemctl poweroff
+        ssh kcza@m33.lan sudo systemctl poweroff
     end
 
     function m33.reboot --description 'Reboot M.33 immediately'
-        ssh kcza@m33.local sudo systemctl reboot
+        ssh kcza@m33.lan sudo systemctl reboot
     end
 
-    function pi --wraps 'workshop run pi' --description 'Start pi coding agent' 
+    function m33.llama-server --description 'Run llama-server on M.33'
+        ssh kcza@m33.lan llama-server $argv
+    end
+
+    function m33.laguna-server --description 'Run llama-server-laguna on M.33'
+        ssh kcza@m33.lan llama-server-laguna $argv
+    end
+
+    function pi --wraps 'workshop run pi' --description 'Start pi coding agent'
         workshop run pi $argv
+    end
+
+    function omp --wraps 'workshop run omp' --description 'Start omp coding agent'
+        workshop run omp $argv
     end
 
 	export EDITOR=nvim

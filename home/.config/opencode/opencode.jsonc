@@ -37,6 +37,9 @@
                 },
                 "qwen3.6:35b-a3b": {
                     "name": "Qwen3.6 35B-A3B"
+                },
+                "gpt-oss:120b": {
+                    "name": "GPT-OSS"
                 }
             }
         }
