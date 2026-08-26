@@ -1,3 +1,4 @@
 *.db
 work_dir/
 __pycache__/
+.workshop.lock
