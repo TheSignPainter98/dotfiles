@@ -1,0 +1,101 @@
+#!/bin/bash
+# Tests for wx — workshop action dispatcher.
+set -euo pipefail
+
+WX_DIR="$(mktemp -d)/testdir"
+MOCK_DIR="$(mktemp -d)"
+trap 'rm -rf "$WX_DIR" "$MOCK_DIR"' EXIT
+
+mkdir -p "$WX_DIR/.workshop"
+
+cat > "$MOCK_DIR/workshop" << 'EOF'
+#!/bin/sh
+echo "MOCK run $*"
+EOF
+cat > "$MOCK_DIR/nocat" << 'EOF'
+#!/bin/sh
+echo "MOCK exec $*"
+EOF
+cat > "$MOCK_DIR/hello" << 'EOF'
+#!/bin/sh
+echo "MOCK exec hello $*"
+EOF
+chmod +x "$MOCK_DIR"/*
+
+export PATH="$MOCK_DIR:$PATH"
+
+cp "$(dirname "$0")/home/.local/bin/wx" "$WX_DIR/wx"
+chmod +x "$WX_DIR/wx"
+
+echo 'actions:
+  hello: echo hi' > "$WX_DIR/.workshop/test.yaml"
+
+pass=0
+fail=0
+
+run_test() {
+    local name="$1" expected="$2"; shift 2
+    local actual
+    actual=$("$@" 2>&1) || true
+    if [[ "$actual" == "$expected" ]]; then
+        echo "PASS: $name"
+        ((pass++)) || true
+    else
+        echo "FAIL: $name"
+        echo "  expected: $expected"
+        ((fail++)) || true
+    fi
+}
+
+# 1. Action dispatch.
+run_test "action dispatch" \
+    "MOCK run run hello --flag" \
+    "$WX_DIR/wx" hello --flag
+
+# 2. Passthrough (non-action).
+run_test "passthrough non-action" \
+    "MOCK exec --x" \
+    "$WX_DIR/wx" nocat --x
+
+# 3. Two YAML files → passthrough.
+touch "$WX_DIR/.workshop/test2.yaml"
+run_test "two yamls passthrough" \
+    "MOCK exec hello --flag" \
+    "$WX_DIR/wx" hello --flag
+rm "$WX_DIR/.workshop/test2.yaml"
+
+# 4. No YAML files → passthrough.
+mv "$WX_DIR/.workshop/test.yaml" "$WX_DIR/.workshop/test.yaml.bak"
+run_test "no yamls passthrough" \
+    "MOCK exec --x" \
+    "$WX_DIR/wx" nocat --x
+mv "$WX_DIR/.workshop/test.yaml.bak" "$WX_DIR/.workshop/test.yaml"
+
+# 5. prog only, no extra args.
+run_test "prog only" \
+    "MOCK run run hello" \
+    "$WX_DIR/wx" hello
+
+# 6. --help should show usage.
+actual=$("$WX_DIR/wx" --help 2>&1) || true
+if echo "$actual" | grep -q "usage: wx"; then
+    echo "PASS: --help shows usage"
+    ((pass++)) || true
+else
+    echo "FAIL: --help"
+    ((fail++)) || true
+fi
+
+# 7. No arguments → error.
+actual=$("$WX_DIR/wx" 2>&1) || true
+if echo "$actual" | grep -q "required: prog"; then
+    echo "PASS: no args error"
+    ((pass++)) || true
+else
+    echo "FAIL: no args error"
+    ((fail++)) || true
+fi
+
+echo
+echo "Results: $pass passed, $fail failed"
+[[ $fail -eq 0 ]]
