@@ -6,5 +6,7 @@ connections:
 sdks:
   - name: direnvrc
   - name: omp
+  - name: project-yuescript
 actions:
   omp: direnv exec /project omp "$@"
+  yue: direnv exec /project yue "$@"
