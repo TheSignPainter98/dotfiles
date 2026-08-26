@@ -30,7 +30,7 @@ export config = ->
     filetype: with { lang, (require "formatter.filetypes.#{lang}")[formatter] for lang, formatter in pairs formatters }
         ['*'] = (require 'formatter.filetypes.any').remove_trailing_whitespace
 
-  with group = autogroup 'autoformat', clear: true
+  with group := autogroup 'autoformat', clear: true
     autocmd 'BufWritePost',
       pattern: '*'
       :group

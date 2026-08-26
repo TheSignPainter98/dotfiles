@@ -117,7 +117,7 @@ specs = with {}
     unless plugin?
       error "unknown plugin #{name}"
 
-    if dependencies = plugin.dependencies
+    if dependencies := plugin.dependencies
       if 'table' != type dependencies
         dependencies = { dependencies }
       for need in *dependencies

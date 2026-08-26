@@ -1,6 +1,6 @@
 import 'wezterm'
 
-if builder = wezterm.config_builder
+if builder := wezterm.config_builder
   _G._module_0 = builder
 
 fira_code =

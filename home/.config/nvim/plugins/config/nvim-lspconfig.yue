@@ -35,7 +35,7 @@ export config = ->
   --     :on_attach
   --     :capabilties
   for lang, _ in pairs servers
-	vim.lsp.enable lang
+    vim.lsp.enable lang
   --     { :name, :capabilities=capabilities, :on_attach=on_attach, :settings={} } = server
   --     lspconfig[name].setup
   --       :settings

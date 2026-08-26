@@ -14,7 +14,7 @@ export dependencies = 'kana/vim-textobj-user'
 export init = ->
 
 export config = ->
-  with group = autogroup 'textobj_quote', clear: true
+  with group := autogroup 'textobj_quote', clear: true
     for pattern in *ft
       autocmd 'FileType',
         :pattern

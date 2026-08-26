@@ -13,7 +13,7 @@ export ft =
 export init = ->
 
 export config = ->
-  with group = autogroup 'litecorrect', clear: true
+  with group := autogroup 'litecorrect', clear: true
     for pattern in *ft
       autocmd 'FileType',
         :pattern

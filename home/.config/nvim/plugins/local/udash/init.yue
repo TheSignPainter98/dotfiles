@@ -67,13 +67,13 @@ export udash = (buf, force=false) ->
   nvim_buf_set_text buf, 0, 0, -1, 0, text
 
   line = 0
-  with ns = 0 -- nvim_create_namespace 'udash'
+  with ns := 0 -- nvim_create_namespace 'udash'
     nvim_set_hl ns, banner_highlight_group, fg: '#ffc00d'
     for _ = 1, #banner
       ns = nvim_buf_add_highlight buf, ns, banner_highlight_group, line, 0, -1
       line += 1
 
-  with ns = 0
+  with ns := 0
     nvim_set_hl ns, subtitle_highlight_group,
       fg: '#df1e29'
       italic: true

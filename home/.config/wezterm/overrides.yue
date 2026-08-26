@@ -2,7 +2,7 @@ import 'wezterm'
 import getenv from os
 
 with {}
-  if profile = getenv 'WEZTERM_PROFILE'
+  if profile := getenv 'WEZTERM_PROFILE'
     switch profile
       when 'messenger'
         .font = wezterm.font_with_fallback
