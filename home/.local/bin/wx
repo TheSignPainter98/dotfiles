@@ -1,0 +1,84 @@
+#!/usr/bin/env python3
+"""wx — workshop action dispatcher."""
+
+from __future__ import annotations
+
+import argparse
+import os
+import re
+import sys
+
+
+def find_workshop_dir(start: str) -> str | None:
+    path = os.path.abspath(start)
+    while True:
+        candidate = os.path.join(path, ".workshop")
+        if os.path.isdir(candidate):
+            return candidate
+        parent = os.path.dirname(path)
+        if parent == path:
+            return None
+        path = parent
+
+
+def parse_actions(text: str) -> dict[str, str]:
+    actions: dict[str, str] = {}
+    in_actions = False
+    entry_re = re.compile(r"^ +(.+):")
+    for line in text.splitlines():
+        if not in_actions:
+            if line.startswith("actions:"):
+                in_actions = True
+            continue
+        m = entry_re.match(line)
+        if not m:
+            if line.startswith("actions:") or not line.strip():
+                continue
+            break
+        actions[m.group(1).strip()] = ""
+    return actions
+
+
+def load_actions(path: str) -> dict[str, str]:
+    try:
+        with open(path, "r") as fh:
+            text = fh.read()
+    except OSError:
+        return {}
+    return parse_actions(text)
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        prog="wx",
+        description="Workshop action dispatcher.",
+        add_help=True,
+    )
+    parser.add_argument("prog", help="command to run")
+    parser.add_argument(
+        "args",
+        nargs=argparse.REMAINDER,
+        help="additional arguments to pass to the command",
+    )
+    opts = parser.parse_args()
+
+    script_dir = os.path.dirname(os.path.realpath(__file__))
+    workshop_dir = find_workshop_dir(script_dir)
+    if workshop_dir is None:
+        os.execvp(opts.prog, [opts.prog, *opts.args])
+
+    yaml_files = sorted(
+        f for f in os.listdir(workshop_dir)
+        if f.endswith(".yaml") or f.endswith(".yml")
+    )
+    if len(yaml_files) != 1:
+        os.execvp(opts.prog, [opts.prog, *opts.args])
+
+    actions = load_actions(os.path.join(workshop_dir, yaml_files[0]))
+    if opts.prog in actions:
+        os.execvp("workshop", ["workshop", "run", opts.prog, *opts.args])
+    os.execvp(opts.prog, [opts.prog, *opts.args])
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
