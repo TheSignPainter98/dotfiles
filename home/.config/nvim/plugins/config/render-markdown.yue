@@ -1,0 +1,7 @@
+export name = 'MeanderingProgrammer/render-markdown.nvim'
+export ft = 'markdown'
+export dependencies =
+  * 'nvim-treesitter/nvim-treesitter'
+  * 'nvim-tree/nvim-web-devicons'
+
+export opts = {}
