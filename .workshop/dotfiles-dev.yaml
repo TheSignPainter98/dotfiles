@@ -3,10 +3,15 @@ base: ubuntu@24.04
 connections:
   - plug: omp:omp-home
     slot: system:mount
+  - plug: pi-coding-agent:pi-config
+    slot: system:mount
 sdks:
   - name: direnvrc
   - name: omp
+  - name: pi-coding-agent
+    channel: latest/edge
   - name: project-yuescript
 actions:
   omp: direnv exec /project omp "$@"
+  pi: direnv exec /project pi "$@"
   yue: direnv exec /project yue "$@"

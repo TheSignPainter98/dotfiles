@@ -4,4 +4,28 @@ export dependencies =
   * 'nvim-treesitter/nvim-treesitter'
   * 'nvim-tree/nvim-web-devicons'
 
-export opts = {}
+export opts =
+  render_modes: true
+  heading:
+    atx: false
+  restart_highlighter: true
+  code:
+    sign: false
+    language_name: false
+    width: 'block'
+    min_width: 50
+    -- border: 'thick'
+    margin:
+      left_pad: 1
+      right_pad: 1
+    highlight: 'RenderMarkdownCode'
+    style: 'normal'
+  injections:
+    python:
+      enabled: true
+    rust:
+      enabled: true
+    starlark:
+      enabled: true
+    bash:
+      enabled: true

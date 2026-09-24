@@ -175,11 +175,11 @@ if status is-interactive
     end
 
     function m33.forward --description 'Set up port-forwarding for M.33'
-        set dashboard_port 11000
-        set remote_model_port 11434
-        set local_model_port 11001
-        ssh -f -N -L $dashboard_port:localhost:$dashboard_port kcza@m33.lan
-        ssh -f -N -L $local_model_port:localhost:$remote_model_port kcza@m33.lan
+        set dashboard_port 11033
+        ssh -f -N -L $dashboard_port:localhost:11000 kcza@m33.lan
+        # set remote_model_port 11434
+        # set local_model_port 11001
+        # ssh -f -N -L $local_model_port:localhost:$remote_model_port kcza@m33.lan
     end
 
     function m33.mps --description "List M.33's running models"
@@ -213,6 +213,51 @@ if status is-interactive
 
     function m33.laguna-server --description 'Run llama-server-laguna on M.33'
         ssh kcza@m33.lan llama-server-laguna $argv
+    end
+
+    function m27 --wraps 'ssh' --description 'Log into M.27'
+        ssh kcza@m27.lan $argv
+    end
+
+    function m27.forward --description 'Set up port-forwarding for M.27'
+        set dashboard_port 11027
+        ssh -f -N -L $dashboard_port:localhost:11000 kcza@m27.lan
+        # set remote_model_port 11435
+        # set local_model_port 11001
+        # ssh -f -N -L $local_model_port:localhost:$remote_model_port kcza@m27.lan
+    end
+
+    function m27.mps --description "List M.27's running models"
+        set ps (ssh kcza@m27.lan ollama ps | tee /dev/stderr)
+        if echo $ps | grep 'CPU' >/dev/null
+            echo '+-----------------------------------------+'
+            echo '| WARNING: a model is running on the CPU! |'
+            echo '+-----------------------------------------+'
+        end
+    end
+
+    function m27.models --description "List M.27's known models"
+        ssh kcza@m27.lan ollama list
+    end
+
+    function m27.restart-ollama --description 'Reload the ollama snap on M.27'
+        ssh kcza@m27.lan sudo snap restart ollama
+    end
+
+    function m27.poweroff --description 'Shut down M.27 immediately'
+        ssh kcza@m27.lan sudo systemctl poweroff
+    end
+
+    function m27.reboot --description 'Reboot M.27 immediately'
+        ssh kcza@m27.lan sudo systemctl reboot
+    end
+
+    function m27.llama-server --description 'Run llama-server on M.27'
+        ssh kcza@m27.lan llama-server $argv
+    end
+
+    function m27.laguna-server --description 'Run llama-server-laguna on M.27'
+        ssh kcza@m27.lan llama-server-laguna $argv
     end
 
     function pi --wraps 'workshop run pi' --description 'Start pi coding agent'
