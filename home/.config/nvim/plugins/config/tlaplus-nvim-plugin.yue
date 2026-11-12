@@ -1,2 +1,4 @@
 export name = 'tlaplus-community/tlaplus-nvim-plugin'
 export ft = 'tla'
+export setup = ->
+    vim.g.tlaplus_mappings_enable = true

@@ -260,6 +260,10 @@ if status is-interactive
         ssh kcza@m27.lan llama-server-laguna $argv
     end
 
+    function cargo --wraps 'workshop run cargo' --description 'Call cargo in workshop'
+        workshop run cargo $argv
+    end
+
     function pi --wraps 'workshop run pi' --description 'Start pi coding agent'
         workshop run pi $argv
     end
